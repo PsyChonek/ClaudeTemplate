@@ -7,9 +7,6 @@ Coordinate a team of Claude Code teammates to work on the project in parallel.
 > { "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 > ```
 
-<!-- TODO: Replace the role table and spawn prompt below with project-specific roles.
-     Run @init to auto-generate roles from your project structure. -->
-
 ---
 
 ## Step 1 — Understand the Work
@@ -25,18 +22,18 @@ If no specific task is given, ask: `"What do you want the team to work on?"`
 
 ## Step 2 — Choose Teammates
 
-Pick roles based on what the work touches. Use only roles that are actually needed.
+Read all files in the `teams/` folder. Each file defines one role — its `model` and `scope` are in the YAML frontmatter at the top.
+
+Build the role table from those files:
 
 | Role | Model | Scope |
 |------|-------|-------|
-| **[TODO: role-a]** | sonnet | [TODO: files/dirs this role owns] |
-| **[TODO: role-b]** | sonnet | [TODO: files/dirs this role owns] |
-| **[TODO: role-c]** | sonnet | [TODO: files/dirs this role owns] |
-| **test-writer** | haiku | Unit tests, integration test stubs |
-| **explorer** | haiku | Read-only research — finding relevant code, auditing |
+| *(read from teams/*.md frontmatter)* | | |
 
 **Team size guideline**: 3 teammates for most tasks; up to 5 for large cross-layer work.
-Spawn `explorer` first (haiku, cheap) to map unfamiliar territory before coding teammates start.
+Always include `explorer` (haiku, cheap) when the affected area is unfamiliar — spawn it first.
+
+Pick only roles whose scope overlaps with the current work.
 
 ---
 
@@ -45,8 +42,6 @@ Spawn `explorer` first (haiku, cheap) to map unfamiliar territory before coding 
 ```
 TeamCreate team-name="[project]-YYYYMMDD"
 ```
-
-Name it with today's date (e.g., `myproject-20260307`).
 
 ---
 
@@ -68,35 +63,10 @@ TaskCreate title="..." description="..." assignee="[role]"
 
 ## Step 5 — Spawn Teammates
 
-Spawn each teammate with a role-specific system prompt. Include:
-1. Their role and which files/dirs they own
-2. The full list of tasks assigned to them
-3. Project context (key paths, AGENTS.md locations)
-4. Instructions to read AGENTS.md files for any directory they edit
-5. Instructions to `SendMessage` to you (the lead) when blocked or done
-
-**Template for spawn prompt:**
+For each teammate, read the corresponding `teams/[role].md` file and use it as the spawn prompt. Substitute `[TASKS]` with the actual task list assigned to that role.
 
 ```
-You are the [ROLE] teammate for [PROJECT_NAME].
-Working directory: [PROJECT_ROOT]
-
-Your tasks (claim them from the task list):
-[list tasks]
-
-Your scope:
-[list files/dirs]
-
-Rules:
-- Before editing any file, read the relevant AGENTS.md files walking up from that file to the root.
-- SendMessage to the lead when you finish all tasks or are blocked.
-- Do NOT edit files outside your scope without asking the lead first.
-
-**MANDATORY self-checks before reporting done:**
-[TODO: add role-specific build/test commands here]
-
-Key paths:
-[TODO: list important file paths for this project]
+SendMessage to teammate: [full content of teams/[role].md with [TASKS] filled in]
 ```
 
 ---
@@ -119,7 +89,7 @@ While teammates work:
 When all tasks show `completed`, run the full check suite from the lead session:
 
 ```
-[TODO: full test/check command]
+[TODO: full test/check command — filled in by @init]
 ```
 
 **If anything fails**: keep the relevant teammate alive, send them the failure output, wait for the fix, then re-run. Only proceed when all checks pass.

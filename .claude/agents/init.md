@@ -1,7 +1,7 @@
 <!-- Auto-generated from agents/init.agent.md — do not edit -->
 ---
 name: "init"
-description: "One-time project setup — scans codebase and customizes all template files"
+description: "One-time project setup — scans codebase and customizes all template files including teams/ roles"
 ---
 
 # Init Agent
@@ -34,30 +34,39 @@ Extract:
 
 ---
 
-## Step 2 — Present findings
+## Step 2 — Detect project type
+
+Use the files found in Step 1 to classify the project. Match the **first** row that applies:
+
+| Detected | Project type | Team roles to create |
+|---|---|---|
+| `Cargo.toml` (workspace) + `tauri.conf.json` | **Rust + Tauri** | rust-backend, tauri-bridge, frontend, test-writer, explorer |
+| `Cargo.toml` (workspace, no Tauri) + multiple crates | **Rust workspace** | one role per main crate, test-writer, explorer |
+| `Cargo.toml` (single crate, binary) | **Rust app** | backend, test-writer, explorer |
+| `package.json` + (`react`/`vue`/`svelte`/`next`/`nuxt`) + no backend folder | **Frontend JS/TS** | components, state, test-writer, explorer |
+| `package.json` + backend folder (`server/`, `api/`, `src/routes/`) | **Fullstack Node** | backend, frontend, test-writer, explorer |
+| `pyproject.toml` or `requirements.txt` | **Python** | backend, data, test-writer, explorer |
+| `*.sln` or multiple `*.csproj` | **.NET** | api, domain, infrastructure, test-writer, explorer |
+| `go.mod` | **Go** | backend, test-writer, explorer |
+| anything else | **Generic** | backend, frontend, test-writer, explorer |
+
+---
+
+## Step 3 — Present findings
 
 Present a clear summary to the user before writing anything:
 
 ```
-Project: [name]
-Description: [one-liner]
-Tech: [stack]
-Build: [command]
-Test: [command]
-Dev: [command]
-Structure:
-  [dir/] — [purpose]
-  [dir/] — [purpose]
+Project:  [name]
+Type:     [detected type]
+Tech:     [stack]
+Build:    [command]
+Test:     [command]
 
-I will customize:
-  CLAUDE.md           — project overview + AGENTS.md linker
-  AGENTS.md           — root coding rules
-  .claude/commands/push.md
-  .claude/commands/test.md
-  .claude/commands/build.md
-  .claude/commands/team.md
-  .claude/commands/bump.md
-  .claude/commands/release.md
+I will create:
+  CLAUDE.md, AGENTS.md
+  .claude/commands/  (push, test, build, bump, release, team)
+  teams/             ([role list])
 
 Proceed? [yes / adjust X first]
 ```
@@ -66,88 +75,146 @@ Wait for confirmation before writing anything.
 
 ---
 
-## Step 3 — Fill in CLAUDE.md
+## Step 4 — Fill in CLAUDE.md
 
-Overwrite `CLAUDE.md` with real project content. Keep all sections from the template; fill in every `[placeholder]` with accurate information. The AGENTS.md linker block at the bottom must remain intact (the instructions-generator will populate the full path list later — leave just `/AGENTS.md` for now).
+Overwrite `CLAUDE.md` with real project content. Keep all sections from the template; fill in every `[placeholder]` with accurate information. The AGENTS.md linker block at the bottom must remain intact (leave just `/AGENTS.md` — the instructions-generator will populate the full list later).
 
 Keep the "Agent Parallelism" and "Git Workflow" sections unchanged — they are universal.
 
 ---
 
-## Step 4 — Fill in root AGENTS.md
+## Step 5 — Fill in root AGENTS.md
 
-Overwrite `AGENTS.md` with project-specific rules. Be specific and actionable. Max 60 lines. Fill in every `[placeholder]` with real conventions and rules extracted from the codebase. Do NOT write generic advice like "write clean code".
+Overwrite `AGENTS.md` with project-specific rules. Be specific and actionable. Max 60 lines. Fill in every `[placeholder]` with real conventions and rules. Do NOT write generic advice like "write clean code".
 
 ---
 
-## Step 5 — Customize .claude/commands/
+## Step 6 — Create teams/ role files
+
+Create a `teams/` folder at the project root. For each role in the detected role set, create `teams/[role].md`.
+
+`test-writer.md` and `explorer.md` are already in the template — update the `[TODO: test command]` placeholder in `test-writer.md` with the real test command.
+
+For every other role, create a new file using this format:
+
+```markdown
+---
+model: sonnet
+scope: [one-line description of what this role owns]
+---
+
+# [Role Name] Teammate
+
+You are the **[role]** teammate for [PROJECT_NAME].
+
+Working directory: `[real absolute path]`
+
+Your tasks (claim them from the task list):
+[TASKS]
+
+Your scope:
+[list of files/directories this role owns]
+
+Rules:
+- Before editing any file, read the AGENTS.md files walking up from that file to the root.
+- SendMessage to the lead when you finish all tasks or are blocked.
+- Do NOT edit files outside your scope without asking the lead first.
+
+**Mandatory self-checks before reporting done:**
+[role-specific build and test commands — be exact, no placeholders]
+
+Key paths:
+- `[path]` — [what it is]
+- `[path]` — [what it is]
+
+[Any role-specific conventions the teammate must follow — derived from AGENTS.md]
+```
+
+### Role sets by project type
+
+**Rust + Tauri** — create: `rust-backend.md`, `tauri-bridge.md`, `frontend.md`
+- `rust-backend`: owns daemon/server/protocol/cluster crates — self-check: `cargo check -p <crate>` + `cargo test -p <crate>`
+- `tauri-bridge`: owns `src-tauri/` — self-check: `cargo check -p <app-crate>`
+- `frontend`: owns `src/` (Vue/React/TS) — self-check: `pnpm test` or equivalent
+
+**Rust workspace** — create one role per main crate:
+- Each role owns its crate directory — self-check: `cargo check -p <crate>` + `cargo test -p <crate>`
+
+**Rust app** — create: `backend.md`
+- owns `src/` — self-check: `cargo check` + `cargo test`
+
+**Fullstack Node** — create: `backend.md`, `frontend.md`
+- `backend`: owns server/api/routes dirs — self-check: test command for backend
+- `frontend`: owns client/src/app dirs — self-check: test command for frontend
+
+**Frontend JS/TS** — create: `components.md`, `state.md`
+- `components`: owns `src/components/` — self-check: `pnpm test` or equivalent
+- `state`: owns stores/context/hooks dirs — self-check: same
+
+**Python** — create: `backend.md`, `data.md`
+- `backend`: owns app/api dirs — self-check: `pytest` or equivalent
+- `data`: owns models/db/migrations dirs — self-check: same
+
+**.NET** — create: `api.md`, `domain.md`, `infrastructure.md`
+- `api`: owns Controllers/Endpoints — self-check: `dotnet test`
+- `domain`: owns Domain/Core projects — self-check: same
+- `infrastructure`: owns Infrastructure/Persistence — self-check: same
+
+**Go** — create: `backend.md`
+- owns `cmd/` and `internal/` — self-check: `go build ./...` + `go test ./...`
+
+**Generic** — create: `backend.md`, `frontend.md`
+- fill with best-guess scope based on actual directory structure found
+
+---
+
+## Step 7 — Customize .claude/commands/
 
 Rewrite each command file with project-specific content:
 
 ### push.md
-
-Use the generic push workflow. Replace:
-- Working directory → real absolute path to project root
-- Co-Authored-By author name → `Claude [model]` (use the model you are running on)
+Replace working directory with the real absolute path.
 
 ### test.md
-
-Replace the `[TODO]` test commands with the real test commands. If there are multiple test runners (e.g., backend + frontend), include all with clear section headers and ask the user which scope to run.
+Replace `[TODO]` with the real test commands. If multiple test runners exist, include all with section headers.
 
 ### build.md
-
-Replace `[TODO]` with the real build commands. If there are multiple targets (platforms, debug/release), list all with clear labels. Specify if any ordering constraint exists between build steps.
+Replace `[TODO]` with the real build commands, in dependency order if multiple targets.
 
 ### team.md
-
-Define roles based on the project's layers. For each distinct layer (backend, frontend, infra, data, tests, etc.):
-- Give the role a short slug name (e.g., `backend`, `frontend`, `data`)
-- List which files/directories it owns
-- List the self-check commands it must run before reporting done (its build/test commands)
-
-Remove the generic placeholder role table and replace with real roles. Update the spawn prompt template with the real project paths, working directory, and self-check commands.
+Update the team name prefix to match the project name (e.g., `myproject-YYYYMMDD`).
+Update the integration check command with the real full-suite check command.
 
 ### bump.md
-
-If version files were found: write the command to bump them. If a bump script exists, reference it. If bumping multiple files (e.g., `package.json` + `Cargo.toml`), list them all. If no versioning system exists, write a note explaining the files to edit manually.
+Use the real version bump approach (script or manual file list).
 
 ### release.md
-
-If CI/CD was found:
-- Write the workflow that triggers a release (tag push, workflow dispatch, etc.)
-- Include the `gh` CLI commands (or equivalent) to monitor CI
-- Include deployment steps if known
-
-If no CI/CD exists: write a manual release checklist (bump → build → tag → push → deploy).
+Use the real CI/CD workflow if found, or write a manual release checklist.
 
 ---
 
-## Step 6 — Run instructions-generator
+## Step 8 — Run instructions-generator
 
-After all files are written, invoke the `instructions-generator` agent:
+After all files are written, invoke the `instructions-generator` agent in interactive mode:
 
 > "Run in interactive mode"
 
-It will scan the full project tree and propose AGENTS.md files for sub-directories. Present its proposals to the user for review.
-
 ---
 
-## Step 7 — Report
-
-List every file created or modified:
+## Step 9 — Report
 
 ```
 ✓ CLAUDE.md               — filled with [project name] info
 ✓ AGENTS.md               — root rules created
+✓ teams/explorer.md       — updated test command
+✓ teams/test-writer.md    — updated test command
+✓ teams/[role].md         — [scope]
+✓ teams/[role].md         — [scope]
 ✓ .claude/commands/push.md
 ✓ .claude/commands/test.md    — using [test command]
 ✓ .claude/commands/build.md   — using [build command]
-✓ .claude/commands/team.md    — [N] roles: [role list]
+✓ .claude/commands/team.md    — reads from teams/
 ✓ .claude/commands/bump.md    — bumps [version files]
-✓ .claude/commands/release.md — [CI/CD system or manual]
-✓ Sub-directory AGENTS.md: [list of created files]
+✓ .claude/commands/release.md — [CI/CD or manual]
+✓ Sub-directory AGENTS.md: [list]
 ```
-
-Suggest next steps:
-- Review each customized file and adjust anything the agent got wrong
-- Run `/push` to commit the setup
