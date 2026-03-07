@@ -65,7 +65,7 @@ Test:     [command]
 
 I will create:
   CLAUDE.md, AGENTS.md
-  .claude/commands/  (push, test, build, bump, release, team)
+  .claude/commands/  (push, test, build, bump, dev, deploy, release, team)
   teams/             ([role list])
 
 Proceed? [yes / adjust X first]
@@ -188,6 +188,23 @@ Update the integration check command with the real full-suite check command.
 ### bump.md
 Use the real version bump approach (script or manual file list).
 
+### dev.md
+If the project has a local dev/hot-reload workflow:
+- Identify infrastructure dependencies (Docker, databases, mock services) and add startup commands
+- Add the actual run/dev command for each target (e.g., `pnpm dev`, `cargo tauri dev`, `uvicorn ... --reload`)
+- If multiple targets exist (desktop + mobile, frontend + backend), list each with a numbered option
+- Fill in the connection info (ports, URLs, credentials) printed on startup
+
+If the project has no local dev server (e.g., a CLI tool, a library), remove `dev.md`.
+
+### deploy.md
+If the project deploys to one or more environments:
+- List each environment (local, staging, remote server, cloud)
+- Add the exact deploy command per environment (scp + ssh, kubectl, fly, vercel, scripts, etc.)
+- Add verification commands (health check endpoint, systemctl status, docker inspect)
+
+If there is no deployment (e.g., a library published to a registry), replace the content with the publish command instead (e.g., `cargo publish`, `npm publish`, `pip publish`).
+
 ### release.md
 Use the real CI/CD workflow if found, or write a manual release checklist.
 
@@ -213,6 +230,8 @@ After all files are written, invoke the `instructions-generator` agent in intera
 ✓ .claude/commands/push.md
 ✓ .claude/commands/test.md    — using [test command]
 ✓ .claude/commands/build.md   — using [build command]
+✓ .claude/commands/dev.md     — [dev command / removed if N/A]
+✓ .claude/commands/deploy.md  — [deploy targets / publish if library]
 ✓ .claude/commands/team.md    — reads from teams/
 ✓ .claude/commands/bump.md    — bumps [version files]
 ✓ .claude/commands/release.md — [CI/CD or manual]

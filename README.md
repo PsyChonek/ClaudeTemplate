@@ -20,6 +20,8 @@ Structured AI-assisted development for any project — agents, slash commands, a
 | `/push` | Commit and push |
 | `/test` | Run the test suite |
 | `/build` | Build the project |
+| `/dev` | Start the hot-reload dev environment |
+| `/deploy` | Deploy to target environments |
 | `/bump` | Bump the version |
 | `/release` | Cut a release (bump → tag → CI → deploy) |
 | `/team` | Spawn a parallel agent team for large features |
