@@ -65,7 +65,7 @@ Test:     [command]
 
 I will create:
   CLAUDE.md, AGENTS.md
-  .claude/commands/  (push, test, build, bump, dev, deploy, release, team)
+  .claude/commands/  (push, test, build, bump, dev, release, team)
   teams/             ([role list])
 
 Proceed? [yes / adjust X first]
@@ -197,14 +197,6 @@ If the project has a local dev/hot-reload workflow:
 
 If the project has no local dev server (e.g., a CLI tool, a library), remove `dev.md`.
 
-### deploy.md
-If the project deploys to one or more environments:
-- List each environment (local, staging, remote server, cloud)
-- Add the exact deploy command per environment (scp + ssh, kubectl, fly, vercel, scripts, etc.)
-- Add verification commands (health check endpoint, systemctl status, docker inspect)
-
-If there is no deployment (e.g., a library published to a registry), replace the content with the publish command instead (e.g., `cargo publish`, `npm publish`, `pip publish`).
-
 ### release.md
 Use the real CI/CD workflow if found, or write a manual release checklist.
 
@@ -231,7 +223,6 @@ After all files are written, invoke the `instructions-generator` agent in intera
 ✓ .claude/commands/test.md    — using [test command]
 ✓ .claude/commands/build.md   — using [build command]
 ✓ .claude/commands/dev.md     — [dev command / removed if N/A]
-✓ .claude/commands/deploy.md  — [deploy targets / publish if library]
 ✓ .claude/commands/team.md    — reads from teams/
 ✓ .claude/commands/bump.md    — bumps [version files]
 ✓ .claude/commands/release.md — [CI/CD or manual]
