@@ -1,7 +1,7 @@
 <!-- Auto-generated from agents/init.agent.md — do not edit -->
 ---
 name: "init"
-description: "One-time project setup — scans codebase and customizes all template files including teams/ roles"
+description: "You perform a one-time setup of the Claude Code project template by scanning the codebase and customizing all template files for this specific project."
 ---
 
 # Init Agent
@@ -65,7 +65,8 @@ Test:     [command]
 
 I will create:
   CLAUDE.md, AGENTS.md
-  .claude/commands/  (push, test, build, bump, dev, release, team)
+  .claude/commands/  (push, test, build, bump, dev, release)
+  .claude/commands/team.md
   teams/             ([role list])
 
 Proceed? [yes / adjust X first]
@@ -184,6 +185,7 @@ Replace `[TODO]` with the real build commands, in dependency order if multiple t
 ### team.md
 Update the team name prefix to match the project name (e.g., `myproject-YYYYMMDD`).
 Update the integration check command with the real full-suite check command.
+No role table needed — roles are now read from `teams/`.
 
 ### bump.md
 Use the real version bump approach (script or manual file list).
@@ -204,7 +206,7 @@ Use the real CI/CD workflow if found, or write a manual release checklist.
 
 ## Step 8 — Run instructions-generator
 
-After all files are written, invoke the `instructions-generator` agent in interactive mode:
+After all files are written, invoke the `instructions-generator` agent in interactive mode to create sub-directory AGENTS.md files:
 
 > "Run in interactive mode"
 

@@ -1,7 +1,7 @@
 <!-- Auto-generated from agents/template-updater.agent.md — do not edit -->
 ---
 name: "template-updater"
-description: "Syncs improvements from this project back to the generic Claude Code template"
+description: "You sync improvements from this project's Claude Code setup back to the generic Claude Code template at `C:\Repos\ClaudeTemplate` (or a user-specified template path), so other projects benefit from lessons learned here."
 ---
 
 # Template Updater Agent
