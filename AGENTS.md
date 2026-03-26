@@ -37,3 +37,6 @@
 ## Agent Parallelism
 - Spawn subagents for independent subsystems
 - Main agent orchestrates and synthesizes — does not do heavy reading directly
+
+## Instructions files 
+- Use AGENTS.md instead of CLAUDE.md
