@@ -65,8 +65,7 @@ Test:     [command]
 
 I will create:
   CLAUDE.md, AGENTS.md
-  .claude/commands/  (push, test, build, bump, dev, release)
-  .claude/commands/team.md
+  commands/          (push, test, build, bump, dev, release, team)
   teams/             ([role list])
 
 Proceed? [yes / adjust X first]
@@ -169,37 +168,38 @@ Key paths:
 
 ---
 
-## Step 7 — Customize .claude/commands/
+## Step 7 — Customize commands/
 
-Rewrite each command file with project-specific content:
+Rewrite each source command file in `commands/` with project-specific content.
+The `@instructions-generator` will sync them to `.claude/commands/` afterwards.
 
-### push.md
+### push.command.md
 Replace working directory with the real absolute path.
 
-### test.md
+### test.command.md
 Replace `[TODO]` with the real test commands. If multiple test runners exist, include all with section headers.
 
-### build.md
+### build.command.md
 Replace `[TODO]` with the real build commands, in dependency order if multiple targets.
 
-### team.md
+### team.command.md
 Update the team name prefix to match the project name (e.g., `myproject-YYYYMMDD`).
 Update the integration check command with the real full-suite check command.
 No role table needed — roles are now read from `teams/`.
 
-### bump.md
+### bump.command.md
 Use the real version bump approach (script or manual file list).
 
-### dev.md
+### dev.command.md
 If the project has a local dev/hot-reload workflow:
 - Identify infrastructure dependencies (Docker, databases, mock services) and add startup commands
 - Add the actual run/dev command for each target (e.g., `pnpm dev`, `cargo tauri dev`, `uvicorn ... --reload`)
 - If multiple targets exist (desktop + mobile, frontend + backend), list each with a numbered option
 - Fill in the connection info (ports, URLs, credentials) printed on startup
 
-If the project has no local dev server (e.g., a CLI tool, a library), remove `dev.md`.
+If the project has no local dev server (e.g., a CLI tool, a library), remove `dev.command.md`.
 
-### release.md
+### release.command.md
 Use the real CI/CD workflow if found, or write a manual release checklist.
 
 ---
@@ -221,12 +221,12 @@ After all files are written, invoke the `instructions-generator` agent in intera
 ✓ teams/test-writer.md    — updated test command
 ✓ teams/[role].md         — [scope]
 ✓ teams/[role].md         — [scope]
-✓ .claude/commands/push.md
-✓ .claude/commands/test.md    — using [test command]
-✓ .claude/commands/build.md   — using [build command]
-✓ .claude/commands/dev.md     — [dev command / removed if N/A]
-✓ .claude/commands/team.md    — reads from teams/
-✓ .claude/commands/bump.md    — bumps [version files]
-✓ .claude/commands/release.md — [CI/CD or manual]
+✓ commands/push.command.md
+✓ commands/test.command.md    — using [test command]
+✓ commands/build.command.md   — using [build command]
+✓ commands/dev.command.md     — [dev command / removed if N/A]
+✓ commands/team.command.md    — reads from teams/
+✓ commands/bump.command.md    — bumps [version files]
+✓ commands/release.command.md — [CI/CD or manual]
 ✓ Sub-directory AGENTS.md: [list]
 ```

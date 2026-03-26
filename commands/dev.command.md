@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/dev.command.md — do not edit -->
 # Dev — Start Development Environment
 
 Start the hot-reload development environment.

@@ -1,0 +1,11 @@
+{
+  "name": "claude-template",
+  "description": "Structured AI-assisted development — agents, slash commands, and per-directory coding rules",
+  "version": "1.0.0",
+  "author": {
+    "name": "PsyChonek",
+    "url": "https://github.com/PsyChonek"
+  },
+  "repository": "https://github.com/PsyChonek/ClaudeTemplate",
+  "license": "MIT"
+}

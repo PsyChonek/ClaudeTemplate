@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/test.command.md — do not edit -->
 # Run Tests
 
 Run the project test suite with the selected scope.

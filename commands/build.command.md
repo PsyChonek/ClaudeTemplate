@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/build.command.md — do not edit -->
 # Build
 
 Build the project.

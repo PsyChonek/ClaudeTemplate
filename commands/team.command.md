@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/team.command.md — do not edit -->
 # Start Agent Team
 
 Coordinate a team of Claude Code teammates to work on the project in parallel.

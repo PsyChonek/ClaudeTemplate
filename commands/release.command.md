@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/release.command.md — do not edit -->
 # Release
 
 Cut a release: bump version, tag, trigger CI/CD (if configured), and deploy.

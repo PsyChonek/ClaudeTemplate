@@ -196,9 +196,10 @@ always be identical: **walk up only, never across.**
 
 ---
 
-## Part 3 — Agent Sync
+## Part 3 — Agent & Command Sync
 
 `agents/` is the **single source of truth** for all agent prompts.
+`commands/` is the **single source of truth** for all command/skill prompts.
 Tool-specific locations are auto-generated mirrors.
 
 ### Sync Map
@@ -208,6 +209,7 @@ Tool-specific locations are auto-generated mirrors.
 | `agents/*.agent.md` | `.github/copilot/agents/*.md` | Strip `.agent` from name, prepend Copilot YAML header |
 | `agents/*.agent.md` | `.claude/agents/*.md` | Strip `.agent` from name, prepend Claude Code YAML frontmatter |
 | `agents/*.agent.md` | `.junie/agents/*.md` | Strip `.agent` from name, prepend Junie header |
+| `commands/*.command.md` | `.claude/commands/*.md` | Strip `.command` from name, prepend auto-generated comment |
 
 ### Claude Code Agent Format
 
@@ -266,22 +268,36 @@ For each `agents/[name].agent.md`, create `.junie/agents/[name].md`:
 Note: Junie also reads `AGENTS.md` files natively and uses
 `.junie/guidelines.md` for project-level instructions (handled in Part 2).
 
+### Claude Code Command Format
+
+For each `commands/[name].command.md`, create `.claude/commands/[name].md`:
+
+~~~markdown
+<!-- Auto-generated from commands/[name].command.md — do not edit -->
+
+[Full content of commands/[name].command.md]
+~~~
+
 ### Sync Rules
 
 1. **Scan** `agents/` for all `*.agent.md` files
-2. **Generate** tool-specific copies in their required locations
-3. **Delete** orphaned target files (source was removed)
-4. **Never edit** target files directly — always edit in `agents/`
-5. Add a comment at the top of every generated file:
-   `<!-- Auto-generated from agents/[name].agent.md — do not edit -->`
-6. **Update** `agents/README.md` available agents table automatically
+2. **Scan** `commands/` for all `*.command.md` files
+3. **Generate** tool-specific copies in their required locations
+4. **Delete** orphaned target files (source was removed)
+5. **Never edit** target files directly — always edit in `agents/` or `commands/`
+6. Add a comment at the top of every generated file:
+   - Agents: `<!-- Auto-generated from agents/[name].agent.md — do not edit -->`
+   - Commands: `<!-- Auto-generated from commands/[name].command.md — do not edit -->`
+7. **Update** `agents/README.md` available agents table automatically
+8. **Update** `commands/README.md` available commands table automatically
 
 ### Future Tool Support
 
-When new AI tools require agents in specific locations, add a new row
+When new AI tools require agents or commands in specific locations, add a new row
 to the sync map and the agent will handle it. Currently supported:
 - GitHub Copilot: `.github/copilot/agents/`
-- Claude Code: `.claude/agents/`
+- Claude Code agents: `.claude/agents/`
+- Claude Code commands: `.claude/commands/`
 - JetBrains Junie: `.junie/agents/`
 
 ---
@@ -301,28 +317,29 @@ Full exploration first, then batch review:
 7. Present the full table to the user for review
 8. User approves, modifies, or rejects entries
 9. Execute all approved actions (write new, rewrite stale, delete unnecessary)
-10. Sync linkers and agents
+10. Sync linkers, agents, and commands
 
 ### Mode 2 — Autonomous
 Scan everything, evaluate existing `AGENTS.md` files,
 apply placement rules, update/create/delete as needed,
-sync all linkers and agents, present summary for review.
+sync all linkers, agents, and commands, present summary for review.
 
 ### Mode 3 — Targeted
 User specifies exact folders. Write only those.
-Still sync linkers and agents at the end.
+Still sync linkers, agents, and commands at the end.
 
 ### Mode 4 — Audit
 Don't write anything. Report:
 - Folders missing `AGENTS.md`
 - Existing `AGENTS.md` files that are stale or contradictory
 - Old AI instruction files that should be cleaned up
-- Agent sync status (out of date / orphaned / missing)
+- Agent and command sync status (out of date / orphaned / missing)
 
 ### Mode 5 — Sync Only
 Skip `AGENTS.md` rule generation. Only:
 - Regenerate linker files with current path lists
 - Sync agents to tool-specific locations
+- Sync commands to tool-specific locations
 
 Commands:
 - `"Run in interactive mode"`
@@ -350,7 +367,7 @@ Before writing any files:
 5. **Write** new or replacement `AGENTS.md` files based on current
    codebase analysis and placement rules
 6. **Preserve** root linker files — overwrite with linker template
-7. **Remove** orphaned agent copies in tool-specific folders
+7. **Remove** orphaned agent and command copies in tool-specific folders
 8. **Log** everything kept/updated/created/deleted
 
 ---
@@ -367,8 +384,10 @@ Before writing any files:
 - [ ] Existing project-specific content was preserved, not overwritten
 - [ ] Zero duplicated content across `AGENTS.md` files
 - [ ] Auto-generated folders excluded
-- [ ] `agents/` folder excluded from rule generation
+- [ ] `agents/` and `commands/` folders excluded from rule generation
 - [ ] All agents synced to `.github/copilot/agents/`, `.claude/agents/`, and `.junie/agents/`
-- [ ] No orphaned agent copies in tool-specific folders
+- [ ] All commands synced to `.claude/commands/`
+- [ ] No orphaned agent or command copies in tool-specific folders
 - [ ] `agents/README.md` table is up to date
+- [ ] `commands/README.md` table is up to date
 - [ ] All synced files have auto-generated comment header

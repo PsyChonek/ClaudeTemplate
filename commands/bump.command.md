@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/bump.command.md — do not edit -->
 # Bump Version
 
 Bump the project version across all relevant files.

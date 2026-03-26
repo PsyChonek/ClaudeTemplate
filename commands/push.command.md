@@ -1,4 +1,3 @@
-<!-- Auto-generated from commands/push.command.md — do not edit -->
 # Commit and Push
 
 Stage, commit, and push all current changes to the remote.
