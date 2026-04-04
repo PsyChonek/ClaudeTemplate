@@ -1,0 +1,16 @@
+{
+  "name": "claude-template",
+  "owner": {
+    "name": "PsyChonek",
+    "email": "",
+    "url": "https://github.com/PsyChonek"
+  },
+  "plugins": [
+    {
+      "name": "claude-template",
+      "source": ".",
+      "description": "Structured AI-assisted development — agents, slash commands, skills, and per-directory coding rules",
+      "version": "1.0.0"
+    }
+  ]
+}

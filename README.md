@@ -4,14 +4,33 @@ Structured AI-assisted development for any project — agents, slash commands, a
 
 ## Setup
 
-1. **Copy** the contents of this folder into your project root (merge with existing files)
-2. **Open Claude Code** in the project directory
+### Option A: Install as a Plugin (recommended)
+
+1. **Add the marketplace** in Claude Code:
+   ```
+   /plugin marketplace add PsyChonek/ClaudeTemplate
+   ```
+2. **Install the plugin**:
+   ```
+   /plugin install claude-template@claude-template
+   ```
 3. **Run the init agent** — it scans your project and fills in all placeholders:
    ```
    @init Run in interactive mode
    ```
 4. **Review and approve** each proposal before the agent writes anything
 5. **Done** — your project now has customized `CLAUDE.md`, `AGENTS.md`, and all commands
+
+### Option B: Manual copy
+
+1. **Copy** the contents of this folder into your project root (merge with existing files)
+2. **Open Claude Code** in the project directory
+3. **Run the init agent**:
+   ```
+   @init Run in interactive mode
+   ```
+4. **Review and approve** each proposal before the agent writes anything
+5. **Done**
 
 ## What you get
 
