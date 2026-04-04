@@ -79,7 +79,15 @@ Keep the "Agent Parallelism" and "Git Workflow" sections unchanged — they are 
 
 ## Step 5 — Fill in root AGENTS.md
 
-Overwrite `AGENTS.md` with project-specific rules. Be specific and actionable. Max 60 lines. Fill in every `[placeholder]` with real conventions and rules. Do NOT write generic advice like "write clean code".
+Overwrite `AGENTS.md` with project-specific content. Fill in every `[placeholder]` with real, accurate values discovered in Step 1. Max 60 lines.
+
+Guidelines:
+- **Setup**: list all prerequisites and exact commands — an agent must be able to go from zero to running
+- **Architecture**: write a 2-3 sentence overview of data flow, then list components with their directory paths
+- **Rules**: be specific and actionable — "never `unwrap()` outside tests" not "write safe code"
+- **Testing**: include the exact test command and when tests are required
+- Remove the `[example]` hints from each bullet — replace with real project values
+- Keep "Git Workflow" section unchanged — it is universal
 
 ---
 
