@@ -1,10 +1,10 @@
 # Claude Code Project Template
 
-Structured AI-assisted development for any project — agents, slash commands, and per-directory coding rules.
+Structured AI-assisted development for any project — instructions, agents, slash commands, and per-directory coding rules.
 
 ## Setup
 
-### Option A: Install as a Plugin (recommended)
+### Install as a Plugin
 
 1. **Add the marketplace** in Claude Code:
    ```
@@ -14,48 +14,40 @@ Structured AI-assisted development for any project — agents, slash commands, a
    ```
    /plugin install claude-template@claude-template
    ```
-3. **Run the init agent** — it scans your project and fills in all placeholders:
+3. **Run the init skill** — it scans your project and sets everything up:
    ```
-   @init Run in interactive mode
-   ```
-4. **Review and approve** each proposal before the agent writes anything
-5. **Done** — your project now has customized `CLAUDE.md`, `AGENTS.md`, and all commands
-
-### Option B: Manual copy
-
-1. **Copy** the contents of this folder into your project root (merge with existing files)
-2. **Open Claude Code** in the project directory
-3. **Run the init agent**:
-   ```
-   @init Run in interactive mode
+   /init
    ```
 4. **Review and approve** each proposal before the agent writes anything
-5. **Done**
+5. **Done** — your project now has customized `CLAUDE.md`, `AGENTS.md`, and optionally commands, agents, teams, and skills
 
-## What you get
+## What `/init` does
 
-| Command | Purpose |
-|---------|---------|
-| `/push` | Commit and push |
-| `/test` | Run the test suite |
-| `/build` | Build the project |
-| `/dev` | Start the hot-reload dev environment |
-| `/bump` | Bump the version |
-| `/release` | Cut a release (bump → tag → CI → deploy) |
-| `/team` | Spawn a parallel agent team for large features |
+### First run
+- Scans your project to detect stack, commands, conventions
+- Generates `CLAUDE.md` and `AGENTS.md` with project-specific content
+- Creates per-directory `AGENTS.md` files for key modules
+- Asks which optional components to install:
+  - `commands/` — `/build`, `/test`, `/dev`, `/push`, `/bump`, `/release`, `/team`
+  - `agents/` — `@init`, `@instructions-generator`
+  - `teams/` — role definitions for parallel teamwork
+  - `skills/` — build, test, release with persistent memory
+- Saves your choices to `.claude-template.json`
 
-| Agent | Purpose |
-|-------|---------|
-| `@init` | One-time setup — run once per new project |
-| `@instructions-generator` | Create/update per-directory `AGENTS.md` files |
-| `@template-updater` | Sync improvements from this project back to the template |
+### Subsequent runs (update)
+- Checks upstream for template updates
+- Refreshes instructions based on current project state
+- Syncs mirrors (`.claude/commands/`, `.claude/agents/`)
+- Only asks about new components — respects previously declined choices
 
 ## File ownership
 
 - `agents/*.agent.md` — edit these directly (source of truth)
+- `commands/*.command.md` — edit these directly (source of truth)
 - `.claude/agents/*.md` — auto-generated mirrors, do not edit
+- `.claude/commands/*.md` — auto-generated mirrors, do not edit
 - `AGENTS.md` files throughout the project — managed by `@instructions-generator`
 
 ## Keeping things in sync
 
-Re-run `@instructions-generator Sync only` after adding agents, adding directories, or changing project-wide conventions.
+Run `/init` again to check for upstream updates and refresh instructions.

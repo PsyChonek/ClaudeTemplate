@@ -7,11 +7,8 @@ Tool-specific locations (`.claude/agents/`, `.github/copilot/agents/`, `.junie/a
 
 | Agent | Description |
 |-------|-------------|
-| [apply-template](apply-template.agent.md) | Applies this template to an existing project — copies to temp folder, interactively merges, cleans up |
 | [init](init.agent.md) | One-time setup — scans codebase, detects project type, customizes all template files and creates `teams/` roles |
 | [instructions-generator](instructions-generator.agent.md) | Manages the full AGENTS.md system across the codebase |
-| [sync-upstream](sync-upstream.agent.md) | Pulls latest changes from upstream `PsyChonek/ClaudeTemplate` and interactively merges |
-| [template-updater](template-updater.agent.md) | Syncs improvements from this project back to the Claude Code template |
 
 ## How to add an agent
 
