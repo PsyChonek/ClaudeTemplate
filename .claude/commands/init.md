@@ -99,7 +99,7 @@ Do NOT create `AGENTS.md` for:
 
 ## Step 5 — Ask about optional components
 
-Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root (it contains `agents/`, `commands/`, `skills/`, `teams/` directories).
+Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root. The template payload lives in the `template/` subdirectory (it contains `agents/`, `commands/`, `skills/`, `teams/` directories).
 
 Present the user with optional components to install:
 
@@ -254,7 +254,7 @@ Read `.claude-template.json` to determine:
 
 ## Step 2 — Check upstream for template updates
 
-Locate the plugin source directory (same as Init Step 5).
+Locate the plugin source directory (same as Init Step 5 — the `template/` subdirectory of the plugin root).
 
 Check if `upstream` remote exists for `https://github.com/PsyChonek/ClaudeTemplate`:
 

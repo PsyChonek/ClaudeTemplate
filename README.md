@@ -40,7 +40,20 @@ Structured AI-assisted development for any project — instructions, agents, sla
 - Syncs mirrors (`.claude/commands/`, `.claude/agents/`)
 - Only asks about new components — respects previously declined choices
 
-## File ownership
+## Repository structure
+
+```
+.claude/commands/init.md    ← the only exposed skill (/init)
+template/                   ← payload copied into target projects
+  agents/                   ← agent definitions
+  commands/                 ← slash commands
+  skills/                   ← skill packages with memory
+  teams/                    ← team role definitions
+CLAUDE.md                   ← template for project instructions
+AGENTS.md                   ← template for root rules
+```
+
+## File ownership (in target projects)
 
 - `agents/*.agent.md` — edit these directly (source of truth)
 - `commands/*.command.md` — edit these directly (source of truth)
