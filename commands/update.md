@@ -2,6 +2,8 @@
 
 You initialize or update the Claude Code project template. You detect the current state and act accordingly — first run sets everything up, subsequent runs refresh and sync.
 
+> **IMPORTANT — Interactive UI rule:** Every time this prompt says to ask the user a question or present choices, you **MUST** invoke the `AskUserQuestion` tool. Never print a text-based menu, numbered list, or ask the user to type a selection. The tool gives the user a proper interactive UI with arrow keys and space bar to select. This applies to ALL user-facing questions throughout this entire flow.
+
 ---
 
 ## Step 0 — Detect mode
@@ -97,15 +99,25 @@ Classify the project. Match the **first** row that applies:
 
 ## Step 4 — Present findings and confirm
 
-Present a summary using `AskUserQuestion`:
+**You MUST use the `AskUserQuestion` tool** — do not print a text summary and ask the user to type. Invoke:
 
-- question: "I've analyzed your project. Does this look correct?"
-- header: "Project"
-- options:
-  - label: "Looks good", description: "[Project name] — [type] — [tech stack summary] — Build: [cmd] — Test: [cmd]"
-  - label: "Needs adjustment", description: "I'll tell you what to change"
+```json
+{
+  "questions": [
+    {
+      "question": "I've analyzed your project. Does this look correct?",
+      "header": "Project",
+      "multiSelect": false,
+      "options": [
+        {"label": "Looks good", "description": "[Project name] — [type] — [tech stack] — Build: [cmd] — Test: [cmd]"},
+        {"label": "Needs adjustment", "description": "I'll tell you what to change"}
+      ]
+    }
+  ]
+}
+```
 
-If user selects "Needs adjustment", ask what to correct and re-analyze.
+Fill in the description with the actual detected values. If user selects "Needs adjustment", ask what to correct and re-analyze.
 
 ---
 
@@ -197,11 +209,25 @@ Constraints:
 - Do NOT repeat rules already in a parent AGENTS.md
 - Only include sections that have meaningful content
 
-**Present all proposals before writing** using `AskUserQuestion`:
-- question: "I want to create these AGENTS.md files. Approve?"
-- header: "Instructions"
-- multiSelect: true (each proposed file is an option)
-- options: one per proposed AGENTS.md with the path as label and purpose as description
+**Present all proposals before writing.** You MUST use the `AskUserQuestion` tool — do not print a text list. Invoke with `multiSelect: true`, one option per proposed AGENTS.md file:
+
+```json
+{
+  "questions": [
+    {
+      "question": "Which AGENTS.md files should I create?",
+      "header": "Instructions",
+      "multiSelect": true,
+      "options": [
+        {"label": "src/api/AGENTS.md", "description": "API routes, controllers, middleware conventions"},
+        {"label": "src/components/AGENTS.md", "description": "React component patterns, naming, state management"}
+      ]
+    }
+  ]
+}
+```
+
+Replace the example options with the actual proposed paths and their purposes.
 
 ---
 
@@ -209,40 +235,53 @@ Constraints:
 
 Locate the plugin source directory — walk up from this command file to find the plugin root. Template payload is in the `template/` subdirectory.
 
-Use `AskUserQuestion` with **all three questions in a single call**:
+**CRITICAL: You MUST use the `AskUserQuestion` tool for this step.** Do NOT print a text menu. Do NOT ask the user to type numbers. You must invoke the tool so the user gets an interactive checkbox UI with arrow keys and space bar.
 
-**Question 1 — Commands**
-- question: "Which slash commands would you like to install?"
-- header: "Commands"
-- multiSelect: true
-- options:
-  - label: "/build", description: "Build the project (debug or release)"
-  - label: "/test", description: "Run the test suite"
-  - label: "/dev", description: "Start hot-reload dev environment"
-  - label: "/push", description: "Stage, commit, and push changes"
-  - label: "/bump", description: "Bump version across all files"
-  - label: "/release", description: "Cut a release (bump, tag, CI/CD, deploy)"
-  - label: "/team", description: "Spawn a parallel agent team"
+Invoke `AskUserQuestion` with exactly this structure (adjust teams options based on Step 3 detection):
 
-**Question 2 — Skills**
-- question: "Which skill packages would you like to install?"
-- header: "Skills"
-- multiSelect: true
-- options:
-  - label: "build", description: "Persistent memory for build issues, compiler flags, dependency order"
-  - label: "test", description: "Persistent memory for flaky tests, coverage gaps, test data"
-  - label: "release", description: "Persistent memory for CI/CD quirks, rollback notes, deploy issues"
+```json
+{
+  "questions": [
+    {
+      "question": "Which slash commands would you like to install?",
+      "header": "Commands",
+      "multiSelect": true,
+      "options": [
+        {"label": "/build", "description": "Build the project (debug or release)"},
+        {"label": "/test", "description": "Run the test suite"},
+        {"label": "/dev", "description": "Start hot-reload dev environment"},
+        {"label": "/push", "description": "Stage, commit, and push changes"},
+        {"label": "/bump", "description": "Bump version across all files"},
+        {"label": "/release", "description": "Cut a release (bump, tag, CI/CD, deploy)"},
+        {"label": "/team", "description": "Spawn a parallel agent team"}
+      ]
+    },
+    {
+      "question": "Which skill packages would you like to install?",
+      "header": "Skills",
+      "multiSelect": true,
+      "options": [
+        {"label": "build", "description": "Persistent memory for build issues, compiler flags, dependency order"},
+        {"label": "test", "description": "Persistent memory for flaky tests, coverage gaps, test data"},
+        {"label": "release", "description": "Persistent memory for CI/CD quirks, rollback notes, deploy issues"}
+      ]
+    },
+    {
+      "question": "Which team roles would you like to install?",
+      "header": "Teams",
+      "multiSelect": true,
+      "options": [
+        {"label": "explorer", "description": "Read-only research and code mapping (haiku)"},
+        {"label": "test-writer", "description": "Test creation and coverage (haiku)"}
+      ]
+    }
+  ]
+}
+```
 
-**Question 3 — Teams**
-- question: "Which team roles would you like to install?"
-- header: "Teams"
-- multiSelect: true
-- options (base roles + detected project-specific roles from Step 3):
-  - label: "explorer", description: "Read-only research and code mapping (haiku)"
-  - label: "test-writer", description: "Test creation and coverage (haiku)"
-  - [one option per project-specific role with scope from Step 3]
+For the Teams question, **append** project-specific roles from Step 3 to the options array. For example, for a Fullstack Node project add `{"label": "backend", "description": "Backend API and routes (sonnet)"}` and `{"label": "frontend", "description": "Frontend components and state (sonnet)"}`.
 
-Items **not** selected are recorded as `declined`.
+Items the user does **not** select are recorded as `declined`.
 
 ---
 
@@ -397,17 +436,43 @@ Locate the plugin `template/` directory. Compare the plugin's current template v
 If versions differ, compare each installed component file against the plugin's template version:
 
 ### For each installed command/skill/team
-Read both the local file and the template source. If they differ:
-- Show a brief summary of what changed
-- Use `AskUserQuestion` per changed item:
-  - question: "[file] has upstream changes: [summary]. How to handle?"
-  - header: "Update"
-  - options:
-    - label: "Accept", description: "Replace local with upstream version (re-customizes placeholders)"
-    - label: "Skip", description: "Keep local version as-is"
+Read both the local file and the template source. If they differ, use `AskUserQuestion` tool (do NOT print text menus):
+
+```json
+{
+  "questions": [
+    {
+      "question": "[file] has upstream changes: [summary]. How to handle?",
+      "header": "Update",
+      "multiSelect": false,
+      "options": [
+        {"label": "Accept", "description": "Replace local with upstream version (re-customizes placeholders)"},
+        {"label": "Skip", "description": "Keep local version as-is"}
+      ]
+    }
+  ]
+}
+```
 
 ### For new items in template (not in installed or declined)
-Use `AskUserQuestion` with `multiSelect: true` to let the user pick new items. Group by category. Unselected items go to `declined`.
+Use `AskUserQuestion` tool with `multiSelect: true` — do NOT print text lists:
+
+```json
+{
+  "questions": [
+    {
+      "question": "New components available from upstream. Which to install?",
+      "header": "New",
+      "multiSelect": true,
+      "options": [
+        {"label": "[name]", "description": "[what it does]"}
+      ]
+    }
+  ]
+}
+```
+
+Unselected items go to `declined`.
 
 ### For declined items
 Skip silently — never re-ask.
@@ -435,10 +500,26 @@ Evaluate every existing AGENTS.md and every directory:
 - **Missing** (new directory meets creation criteria) → propose creation
 - **Unnecessary** (directory removed or now covered by parent) → propose deletion
 
-Present proposals using `AskUserQuestion` with `multiSelect: true`:
-- question: "Select which instruction updates to apply"
-- header: "Instructions"
-- Each proposed change as an option (label: path, description: action + reason)
+Present proposals using `AskUserQuestion` tool (do NOT print text lists):
+
+```json
+{
+  "questions": [
+    {
+      "question": "Which instruction updates should I apply?",
+      "header": "Instructions",
+      "multiSelect": true,
+      "options": [
+        {"label": "src/api/AGENTS.md", "description": "Rewrite — references removed files"},
+        {"label": "src/services/AGENTS.md", "description": "Create — new module detected"},
+        {"label": "src/old/AGENTS.md", "description": "Delete — directory removed"}
+      ]
+    }
+  ]
+}
+```
+
+Replace example options with actual proposed changes.
 
 ---
 
