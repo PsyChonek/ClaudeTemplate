@@ -101,54 +101,44 @@ Do NOT create `AGENTS.md` for:
 
 Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root. The template payload lives in the `template/` subdirectory (it contains `commands/`, `skills/`, `teams/` directories).
 
-Walk the user through each component category **one at a time** using interactive questions. For each category, list every available item and let the user pick individually.
+Use the `AskUserQuestion` tool for all selections below. This gives the user an interactive UI with arrow keys and space to toggle. Send **all three questions in a single `AskUserQuestion` call** so the user sees them together.
 
-### 5a — Commands
+Call `AskUserQuestion` with these three `multiSelect: true` questions:
 
-Ask the user:
+**Question 1 — Commands**
+- question: "Which slash commands would you like to install?"
+- header: "Commands"
+- multiSelect: true
+- options:
+  - label: "/build", description: "Build the project (debug or release)"
+  - label: "/test", description: "Run the test suite"
+  - label: "/dev", description: "Start hot-reload dev environment"
+  - label: "/push", description: "Stage, commit, and push changes"
+  - label: "/bump", description: "Bump version across all files"
+  - label: "/release", description: "Cut a release (bump, tag, CI/CD, deploy)"
+  - label: "/team", description: "Spawn a parallel agent team"
 
-> **Commands** — slash commands copied into your project as `commands/*.command.md`
->
-> Available:
-> 1. `build`   — Build the project (debug or release)
-> 2. `test`    — Run the test suite
-> 3. `dev`     — Start hot-reload dev environment
-> 4. `push`    — Stage, commit, and push changes
-> 5. `bump`    — Bump version across all files
-> 6. `release` — Cut a release (bump, tag, CI/CD, deploy)
-> 7. `team`    — Spawn a parallel agent team
->
-> Which commands would you like? [all / none / list numbers, e.g. "1,2,4"]
+**Question 2 — Skills**
+- question: "Which skill packages would you like to install?"
+- header: "Skills"
+- multiSelect: true
+- options:
+  - label: "build", description: "Build knowledge, compiler flags, dependency order — with persistent memory"
+  - label: "test", description: "Test execution knowledge, flaky tests, coverage gaps — with persistent memory"
+  - label: "release", description: "Release process, CI/CD quirks, rollback notes — with persistent memory"
 
-### 5b — Skills
+**Question 3 — Teams**
+- question: "Which team roles would you like to install?"
+- header: "Teams"
+- multiSelect: true
+- options (include base roles + detected project-specific roles from Step 2):
+  - label: "explorer", description: "Read-only research and code mapping (model: haiku)"
+  - label: "test-writer", description: "Test creation and coverage (model: haiku)"
+  - [add one option per project-specific role from Step 2 detection table, e.g.:]
+  - label: "backend", description: "[scope from detection] (model: sonnet)"
+  - label: "frontend", description: "[scope from detection] (model: sonnet)"
 
-Ask the user:
-
-> **Skills** — skill packages with persistent memory, copied into `skills/`
->
-> Available:
-> 1. `build`   — Build knowledge, compiler flags, dependency order
-> 2. `test`    — Test execution knowledge, flaky tests, coverage gaps
-> 3. `release` — Release process, CI/CD quirks, rollback notes
->
-> Which skills would you like? [all / none / list numbers]
-
-### 5c — Teams
-
-Ask the user:
-
-> **Teams** — role definitions for the `/team` command, copied into `teams/`
->
-> Base roles (always included if teams selected):
-> - `explorer`    — Read-only research and code mapping
-> - `test-writer` — Test creation and coverage
->
-> Project-specific roles (based on detected type):
-> [list the roles from Step 2 detection table]
->
-> Install team roles? [all / none / select individually]
-
-Wait for the user's answer at each step before proceeding to the next.
+Wait for all answers before proceeding. Items the user did **not** select are recorded as `declined`.
 
 ---
 
@@ -328,12 +318,9 @@ Show changes per item and ask:
 Skip silently — do not ask again.
 
 ### For new items (not in installed or declined)
-If upstream added a new command, skill, or team role, present it interactively:
+If upstream added new commands, skills, or team roles, use `AskUserQuestion` with `multiSelect: true` to let the user pick which new items to install. Group by category. Items not selected are recorded as `declined`.
 
-> "Upstream added new command `deploy`. It does: [description]."
-> "Install it? [yes / no]"
-
-Update `.claude-template.json` with the user's choice.
+Update `.claude-template.json` with the user's choices.
 
 ---
 
