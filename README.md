@@ -16,12 +16,12 @@ Structured AI-assisted development for any project — instructions, agents, sla
    ```
 3. **Run the init skill** — it scans your project and sets everything up:
    ```
-   /template
+   /update
    ```
 4. **Review and approve** each proposal before the agent writes anything
 5. **Done** — your project now has customized `CLAUDE.md`, `AGENTS.md`, and optionally commands, agents, teams, and skills
 
-## What `/template` does
+## What `/update` does
 
 ### First run
 - Scans your project to detect stack, commands, conventions
@@ -43,7 +43,7 @@ Structured AI-assisted development for any project — instructions, agents, sla
 ## Repository structure
 
 ```
-.claude/commands/template.md    ← the only exposed skill (/template)
+.claude/commands/update.md    ← the only exposed skill (/update)
 template/                   ← payload copied into target projects
   agents/                   ← agent definitions
   commands/                 ← slash commands
@@ -63,4 +63,4 @@ AGENTS.md                   ← template for root rules
 
 ## Keeping things in sync
 
-Run `/template` again to check for upstream updates and refresh instructions.
+Run `/update` again to check for upstream updates and refresh instructions.
