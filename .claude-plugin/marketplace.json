@@ -10,7 +10,7 @@
       "name": "claude-template",
       "source": "./",
       "description": "Project template — /update generates instructions and optionally copies commands, agents, teams, and skills",
-      "version": "2.2.0"
+      "version": "2.3.0"
     }
   ]
 }
