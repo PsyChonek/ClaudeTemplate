@@ -1,4 +1,4 @@
-# Init / Update
+# Update
 
 You initialize or update the Claude Code project template in the current project. You detect whether this is a first run or an update, and act accordingly.
 
@@ -97,47 +97,83 @@ Do NOT create `AGENTS.md` for:
 
 ---
 
-## Step 5 — Ask about optional components
+## Step 5 — Interactive component selection
 
-Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root. The template payload lives in the `template/` subdirectory (it contains `agents/`, `commands/`, `skills/`, `teams/` directories).
+Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root. The template payload lives in the `template/` subdirectory (it contains `commands/`, `skills/`, `teams/` directories).
 
-Present the user with optional components to install:
+Walk the user through each component category **one at a time** using interactive questions. For each category, list every available item and let the user pick individually.
 
-```
-Optional components to copy into your project:
+### 5a — Commands
 
-  [ ] commands/  — slash commands: /build, /test, /dev, /push, /bump, /release, /team
-  [ ] agents/    — agent definitions: @init, @instructions-generator
-  [ ] teams/     — team role definitions for /team command
-  [ ] skills/    — skill packages with persistent memory (build, test, release)
+Ask the user:
 
-Which would you like to install? [all / none / select individually]
-```
+> **Commands** — slash commands copied into your project as `commands/*.command.md`
+>
+> Available:
+> 1. `build`   — Build the project (debug or release)
+> 2. `test`    — Run the test suite
+> 3. `dev`     — Start hot-reload dev environment
+> 4. `push`    — Stage, commit, and push changes
+> 5. `bump`    — Bump version across all files
+> 6. `release` — Cut a release (bump, tag, CI/CD, deploy)
+> 7. `team`    — Spawn a parallel agent team
+>
+> Which commands would you like? [all / none / list numbers, e.g. "1,2,4"]
 
-Wait for the user's selection.
+### 5b — Skills
+
+Ask the user:
+
+> **Skills** — skill packages with persistent memory, copied into `skills/`
+>
+> Available:
+> 1. `build`   — Build knowledge, compiler flags, dependency order
+> 2. `test`    — Test execution knowledge, flaky tests, coverage gaps
+> 3. `release` — Release process, CI/CD quirks, rollback notes
+>
+> Which skills would you like? [all / none / list numbers]
+
+### 5c — Teams
+
+Ask the user:
+
+> **Teams** — role definitions for the `/team` command, copied into `teams/`
+>
+> Base roles (always included if teams selected):
+> - `explorer`    — Read-only research and code mapping
+> - `test-writer` — Test creation and coverage
+>
+> Project-specific roles (based on detected type):
+> [list the roles from Step 2 detection table]
+>
+> Install team roles? [all / none / select individually]
+
+Wait for the user's answer at each step before proceeding to the next.
 
 ---
 
 ## Step 6 — Copy and customize selected components
 
-For each selected component group, copy files from the plugin source into the project root:
+For each selected item, copy from the plugin `template/` directory into the project root and customize:
 
-### commands/
-Copy all `commands/*.command.md` files. Customize each:
+### Commands
+For each selected command, copy `template/commands/[name].command.md` to `commands/[name].command.md`. Customize:
 - `push.command.md` — replace working directory with real path
 - `test.command.md` — replace `[TODO]` with real test commands
 - `build.command.md` — replace `[TODO]` with real build commands
 - `team.command.md` — update team name prefix, integration check command
 - `bump.command.md` — use real version bump approach
-- `dev.command.md` — fill in dev commands, or remove if no dev server
+- `dev.command.md` — fill in dev commands, or skip if no dev server
 - `release.command.md` — use real CI/CD workflow
-- `README.md` — copy as-is
 
-### agents/
-Copy `agents/init.agent.md`, `agents/instructions-generator.agent.md`, and `agents/README.md`.
+Also copy `template/commands/README.md` if any commands were selected.
 
-### teams/
-Copy `teams/explorer.md` and `teams/test-writer.md`. Update test command placeholder. Create additional role files based on the detected project type (see Step 2 role table). Each role file uses:
+### Skills
+For each selected skill, copy the entire `template/skills/[name]/` directory to `skills/[name]/`.
+Also copy `template/skills/README.md` if any skills were selected.
+
+### Teams
+Copy selected role files from `template/teams/` to `teams/`. Update `test-writer.md` with the real test command. Create additional project-specific role files based on the detected project type (see Step 2). Each role file uses:
 
 ```markdown
 ---
@@ -169,30 +205,12 @@ Key paths:
 - `[path]` — [what it is]
 ```
 
-### skills/
-Copy the entire `skills/` directory (build/, test/, release/ with their skill.md and memory.md files, plus README.md).
-
 ---
 
 ## Step 7 — Sync mirrors
 
-For any copied components, generate the auto-mirrored files:
+For any copied commands, generate `.claude/commands/` mirrors:
 
-- `agents/*.agent.md` → `.claude/agents/*.md` (with YAML frontmatter)
-- `commands/*.command.md` → `.claude/commands/*.md` (with auto-generated header comment)
-
-Mirror format for agents:
-```markdown
-<!-- Auto-generated from agents/[name].agent.md — do not edit -->
----
-name: "[name]"
-description: "[First line of source file after the # heading]"
----
-
-[Full content]
-```
-
-Mirror format for commands:
 ```markdown
 <!-- Auto-generated from commands/[name].command.md — do not edit -->
 
@@ -207,14 +225,24 @@ Write `.claude-template.json` to the project root:
 
 ```json
 {
-  "version": "1.0.0",
-  "installed": ["commands", "agents"],
-  "declined": ["teams", "skills"],
+  "version": "2.2.0",
+  "commands": {
+    "installed": ["build", "test", "push"],
+    "declined": ["dev", "bump", "release", "team"]
+  },
+  "skills": {
+    "installed": ["build", "test"],
+    "declined": ["release"]
+  },
+  "teams": {
+    "installed": ["explorer", "test-writer", "backend"],
+    "declined": []
+  },
   "lastSync": "YYYY-MM-DD"
 }
 ```
 
-Where `installed` lists selected components and `declined` lists rejected ones. Set `lastSync` to today's date.
+Track each item individually per category. Set `lastSync` to today's date.
 
 ---
 
@@ -225,18 +253,23 @@ Initialized [project name]:
 
   CLAUDE.md            — filled with project info
   AGENTS.md            — root rules created
-  [sub-dir]/AGENTS.md  — [list of per-directory files created]
+  [sub-dir]/AGENTS.md  — [list]
 
-Components installed:
-  commands/  — /build, /test, /dev, /push, /bump, /release, /team
-  agents/    — @init, @instructions-generator
-  [... only list what was installed]
+Commands installed:
+  /build, /test, /push
 
-Components declined:
-  teams/, skills/
+Skills installed:
+  skills/build/, skills/test/
+
+Teams installed:
+  teams/explorer.md, teams/test-writer.md, teams/backend.md
+
+Declined (won't be asked again):
+  commands: dev, bump, release, team
+  skills: release
 
 Saved choices to .claude-template.json
-Run this command again to check for updates.
+Run /update again to check for updates.
 ```
 
 ---
@@ -246,15 +279,15 @@ Run this command again to check for updates.
 ## Step 1 — Read choices
 
 Read `.claude-template.json` to determine:
-- Which components are **installed** (will be updated)
-- Which components were **declined** (will be skipped)
+- Which individual items are **installed** (will be updated)
+- Which individual items were **declined** (will be skipped)
 - Last sync date
 
 ---
 
 ## Step 2 — Check upstream for template updates
 
-Locate the plugin source directory (same as Init Step 5 — the `template/` subdirectory of the plugin root).
+Locate the plugin source directory (the `template/` subdirectory of the plugin root).
 
 Check if `upstream` remote exists for `https://github.com/PsyChonek/ClaudeTemplate`:
 
@@ -277,26 +310,28 @@ If there are upstream changes, show a summary:
 ```
 Upstream has [N] new commits since last sync ([lastSync date]):
 
-  abc1234  feat: add new agent
-  def5678  fix: improve init detection
+  abc1234  feat: add new command
+  def5678  fix: improve build skill
 
 Files changed:
   New:      [list]
   Modified: [list]
 ```
 
-### For installed components
-Show changes and ask:
+### For installed items
+Show changes per item and ask:
 - **Accept** — take upstream version
 - **Merge** — keep local, add upstream additions
 - **Skip** — keep local as-is
 
-### For declined components
+### For declined items
 Skip silently — do not ask again.
 
-### For new components (not in installed or declined)
-If upstream added a new component category, ask the user:
-> "Upstream added new component `[name]`. Install it? [yes / no]"
+### For new items (not in installed or declined)
+If upstream added a new command, skill, or team role, present it interactively:
+
+> "Upstream added new command `deploy`. It does: [description]."
+> "Install it? [yes / no]"
 
 Update `.claude-template.json` with the user's choice.
 
@@ -325,9 +360,7 @@ Proceed? [yes / review individually]
 
 ## Step 4 — Sync mirrors
 
-Regenerate auto-mirrored files for all installed components:
-- `.claude/agents/` from `agents/*.agent.md`
-- `.claude/commands/` from `commands/*.command.md`
+Regenerate `.claude/commands/` mirrors for all installed commands.
 
 Remove orphaned mirrors (source file was deleted).
 
@@ -337,7 +370,7 @@ Remove orphaned mirrors (source file was deleted).
 
 Update `.claude-template.json`:
 - Update `lastSync` to today's date
-- Add any new component choices
+- Add any new item choices (installed or declined)
 - Update `version` if upstream template version changed
 
 ---
@@ -355,8 +388,15 @@ Instructions:
   Created:  src/services/AGENTS.md
   Removed:  src/old-module/AGENTS.md
 
+Components updated:
+  commands/build.command.md — accepted upstream changes
+  skills/test/skill.md — merged
+
+New components:
+  commands/deploy.command.md — installed
+  skills/monitoring/ — declined
+
 Mirrors synced:
-  .claude/agents/[name].md
   .claude/commands/[name].md
 
 Config: .claude-template.json updated (lastSync: [date])
