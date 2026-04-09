@@ -14,14 +14,14 @@ Structured AI-assisted development for any project — instructions, slash comma
    ```
    /plugin install claude-template@claude-template
    ```
-3. **Run `/update`** — it scans your project and sets everything up:
+3. **Run `/claude-template:update`** — it scans your project and sets everything up:
    ```
-   /update
+   /claude-template:update
    ```
 4. **Review and approve** each proposal — the skill walks you through interactive choices
 5. **Done** — your project now has customized `CLAUDE.md`, `AGENTS.md`, and your selected components
 
-## What `/update` does
+## What `/claude-template:update` does
 
 ### First run
 - Scans your project to detect stack, commands, conventions
@@ -42,7 +42,7 @@ Structured AI-assisted development for any project — instructions, slash comma
 ## Repository structure
 
 ```
-commands/update.md          ← the only exposed skill (/update)
+commands/claude-template:update.md          ← the only exposed skill (/claude-template:update)
 template/                   ← payload copied into target projects
   commands/                 ← slash commands
   skills/                   ← skill packages with memory
@@ -55,8 +55,8 @@ AGENTS.md                   ← template for root rules
 
 - `commands/*.command.md` — edit these directly (source of truth)
 - `.claude/commands/*.md` — auto-generated mirrors, do not edit
-- `AGENTS.md` files throughout the project — managed by `/update`
+- `AGENTS.md` files throughout the project — managed by `/claude-template:update`
 
 ## Keeping things in sync
 
-Run `/update` again to check for upstream updates and refresh instructions.
+Run `/claude-template:update` again to check for upstream updates and refresh instructions.
