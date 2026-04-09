@@ -1,6 +1,6 @@
 # Update
 
-You initialize or update the Claude Code project template in the current project. You detect whether this is a first run or an update, and act accordingly.
+You initialize or update the Claude Code project template. You detect the current state and act accordingly — first run sets everything up, subsequent runs refresh and sync.
 
 ---
 
@@ -8,102 +8,208 @@ You initialize or update the Claude Code project template in the current project
 
 Check if `.claude-template.json` exists in the project root.
 
-- **Exists** → go to [Update Mode](#update-mode)
-- **Does not exist** → go to [Init Mode](#init-mode)
+- **Exists** → [Update Mode](#update-mode)
+- **Does not exist** → [Init Mode](#init-mode)
 
 ---
 
 # Init Mode
 
-## Step 1 — Explore the project
+## Step 1 — Deep project exploration
 
-Read as many of the following as exist (in parallel):
+Read as many of the following as exist (**in parallel** for speed):
+
+**Project metadata:**
 - `README.md`, `README.rst`, `README.txt`
-- `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `*.sln`, `pom.xml`, `build.gradle`
-- Root directory listing (to identify key folders)
-- Any existing `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`
-- CI/CD files: `.github/workflows/*.yml`, `.gitlab-ci.yml`, `Jenkinsfile`
-- Version files: look for version strings in package.json, Cargo.toml, tauri.conf.json, etc.
+- `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `*.sln`, `pom.xml`, `build.gradle`, `composer.json`, `Gemfile`
 
-Extract:
+**Configuration:**
+- `tsconfig.json`, `vite.config.*`, `webpack.config.*`, `next.config.*`, `nuxt.config.*`
+- `.env.example`, `.env.template` (never read `.env` itself)
+- `docker-compose.yml`, `Dockerfile`
+- `Makefile`, `justfile`, `Taskfile.yml`
+
+**Existing AI instructions:**
+- `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.junie/guidelines.md`
+- Any `AGENTS.md` files already in the tree
+
+**CI/CD:**
+- `.github/workflows/*.yml`, `.gitlab-ci.yml`, `Jenkinsfile`, `.circleci/config.yml`
+- Azure DevOps: `azure-pipelines.yml`
+
+**Version files:**
+- Look for version strings in package.json, Cargo.toml, tauri.conf.json, pyproject.toml, `*.csproj`, etc.
+
+**Directory structure:**
+- Full root listing + one level deep for key directories
+
+Extract and record:
 - **Project name** and one-line description
-- **Tech stack**: languages, frameworks, key libraries with versions
-- **Build commands**: how to compile/build (debug and release if both exist)
-- **Test commands**: how to run tests (unit, integration, e2e — list all)
-- **Dev/run commands**: how to start the app locally
+- **Tech stack**: languages, frameworks, key libraries **with exact versions**
+- **Build commands**: debug and release if both exist
+- **Test commands**: unit, integration, e2e — list all
+- **Dev/run commands**: how to start locally
+- **Lint/format commands**: if configured
 - **Project structure**: key directories, what each contains, how they relate
-- **Conventions**: naming style, error handling, async patterns
+- **Conventions**: naming style, error handling, async patterns, import ordering
 - **Working directory**: absolute path to project root
-- **Version files**: where version strings live (for `/bump`)
-- **CI/CD**: what system is used, what triggers a release
+- **Version files**: where version strings live
+- **CI/CD**: system used, triggers, deploy targets
+- **Infrastructure**: databases, message queues, caches, external services
 
 ---
 
-## Step 2 — Detect project type
+## Step 2 — Fetch framework docs
 
-Use the files found in Step 1 to classify the project. Match the **first** row that applies:
+Use the `context7` MCP tool to fetch current best practices for the detected framework:
 
-| Detected | Project type | Team roles to create |
+```
+resolve-library-id → query-docs
+```
+
+Focus on:
+- Recommended project structure
+- Idiomatic patterns (e.g., server components for Next.js, composition API for Vue 3)
+- Common security pitfalls for this stack
+- Performance best practices
+
+Use these docs to inform the quality of generated instructions — don't just rely on training data.
+
+---
+
+## Step 3 — Detect project type
+
+Classify the project. Match the **first** row that applies:
+
+| Detected | Project type | Team roles |
 |---|---|---|
 | `Cargo.toml` (workspace) + `tauri.conf.json` | **Rust + Tauri** | rust-backend, tauri-bridge, frontend, test-writer, explorer |
-| `Cargo.toml` (workspace, no Tauri) + multiple crates | **Rust workspace** | one role per main crate, test-writer, explorer |
-| `Cargo.toml` (single crate, binary) | **Rust app** | backend, test-writer, explorer |
-| `package.json` + (`react`/`vue`/`svelte`/`next`/`nuxt`) + no backend folder | **Frontend JS/TS** | components, state, test-writer, explorer |
-| `package.json` + backend folder (`server/`, `api/`, `src/routes/`) | **Fullstack Node** | backend, frontend, test-writer, explorer |
+| `Cargo.toml` (workspace) + multiple crates | **Rust workspace** | one per main crate, test-writer, explorer |
+| `Cargo.toml` (single crate) | **Rust app** | backend, test-writer, explorer |
+| `package.json` + frontend framework + no backend dir | **Frontend JS/TS** | components, state, test-writer, explorer |
+| `package.json` + backend dir (`server/`, `api/`, `src/routes/`) | **Fullstack Node** | backend, frontend, test-writer, explorer |
 | `pyproject.toml` or `requirements.txt` | **Python** | backend, data, test-writer, explorer |
-| `*.sln` or multiple `*.csproj` | **.NET** | api, domain, infrastructure, test-writer, explorer |
+| `*.sln` or `*.csproj` | **.NET** | api, domain, infrastructure, test-writer, explorer |
 | `go.mod` | **Go** | backend, test-writer, explorer |
 | anything else | **Generic** | backend, frontend, test-writer, explorer |
 
 ---
 
-## Step 3 — Present findings
+## Step 4 — Present findings and confirm
 
-Present a clear summary to the user before writing anything:
+Present a summary using `AskUserQuestion`:
 
-```
-Project:  [name]
-Type:     [detected type]
-Tech:     [stack]
-Build:    [command]
-Test:     [command]
-```
+- question: "I've analyzed your project. Does this look correct?"
+- header: "Project"
+- options:
+  - label: "Looks good", description: "[Project name] — [type] — [tech stack summary] — Build: [cmd] — Test: [cmd]"
+  - label: "Needs adjustment", description: "I'll tell you what to change"
 
-Wait for confirmation before proceeding.
+If user selects "Needs adjustment", ask what to correct and re-analyze.
 
 ---
 
-## Step 4 — Generate instructions (always)
+## Step 5 — Generate instructions
 
-These are always generated regardless of component selection:
+These are **always** generated regardless of component selection.
 
-### CLAUDE.md
-Overwrite `CLAUDE.md` with real project content. Keep all sections from the AGENTS.md template; fill in every `[placeholder]` with accurate information. Keep the "Worktree Workflow", "Debugging & Anti-Looping", and "Git Workflow" sections unchanged — they are universal.
+### 5a — Clean up old AI instruction files
 
-### AGENTS.md
-Overwrite root `AGENTS.md` with project-specific content. Fill in every `[placeholder]`. Max 60 lines. Be specific and actionable.
+Search for non-standard AI instruction files:
+- `AI-INSTRUCTIONS.md`, `AI.md`, `.ai-instructions.md`, `COPILOT.md`, `.copilot-instructions.md`
 
-### Per-directory AGENTS.md files
-Scan the project tree and create `AGENTS.md` files where appropriate:
-- Distinct modules, layers, or domains
-- Folders with unique conventions differing from parent
-- Folders with 5+ files or 3+ subfolders
-- Boundary folders (backend vs frontend, shared vs app)
+If found, extract any useful rules, then ask the user:
+> "Found old AI instruction files: [list]. Migrate useful rules into AGENTS.md and delete them? [yes / no / review first]"
 
-Do NOT create `AGENTS.md` for:
-- Leaf folders covered by parent
-- Gitignored or auto-generated folders
-- Config-only folders
+### 5b — CLAUDE.md
+
+If `CLAUDE.md` already has project-specific content (not just placeholders):
+- **Preserve** existing content
+- **Add** missing sections from the template
+- **Update** the AGENTS.md linker block at the bottom
+
+If `CLAUDE.md` is template-only or doesn't exist:
+- Generate from scratch with all sections filled in
+- Keep "Worktree Workflow", "Debugging & Anti-Looping", and "Git Workflow" sections unchanged — they are universal
+
+Always include the AGENTS.md linker block at the bottom:
+```markdown
+All `AGENTS.md` locations:
+- @AGENTS.md
+- @[sub-dir]/AGENTS.md
+- [... every AGENTS.md path in the project]
+```
+
+### 5c — Root AGENTS.md
+
+Fill in every `[placeholder]` with real values. Max 60 lines. Requirements:
+- **Setup**: exact commands — an agent must go from zero to running
+- **Architecture**: 2-3 sentence data flow overview + component list with directory paths
+- **Rules**: specific and actionable — "never `unwrap()` outside tests" not "write safe code"
+- **Testing**: exact test command and when tests are required
+- Include a `## Stack-Specific Rules` section based on context7 docs covering:
+  - **Security**: stack-relevant vulnerabilities
+  - **Performance**: common pitfalls
+  - **Patterns**: idiomatic patterns the framework recommends
+  - **Tooling**: recommended linters, formatters, static analysis
+
+### 5d — Per-directory AGENTS.md files
+
+Scan the entire project tree. For each directory, evaluate whether it needs its own `AGENTS.md`.
+
+**Create when:**
+- Distinct module, layer, or domain (e.g., `src/api/`, `src/components/`, `src/db/`)
+- Unique conventions differing from parent
+- 5+ files or 3+ subfolders
+- Boundary folder (backend vs frontend, shared vs app)
+
+**Do NOT create when:**
+- Leaf folder with few files sharing parent's design — put rules in **parent** instead
+- Gitignored or auto-generated (`node_modules`, `bin`, `obj`, `.next`, `dist`)
+- Parent's AGENTS.md already fully covers this folder
+- Config-only folder
+- Fewer than 3 files with no unique conventions
+
+**Format for each AGENTS.md:**
+
+```markdown
+# [Folder Name]
+
+## Purpose
+One-liner describing what this folder/module does.
+
+## Conventions
+- Naming: [PascalCase / camelCase / kebab-case]
+- Pattern: [e.g., each file exports a single component]
+- Error handling: [pattern used here]
+
+## Rules
+- [Concrete do/don't rules for editing files here]
+- [Import order, export style, test expectations]
+
+## Examples
+- `ExampleFile.tsx` — good example of [pattern]
+```
+
+Constraints:
+- **Under 60 lines** per file
+- Be specific, not generic — no "write clean code"
+- Do NOT repeat rules already in a parent AGENTS.md
+- Only include sections that have meaningful content
+
+**Present all proposals before writing** using `AskUserQuestion`:
+- question: "I want to create these AGENTS.md files. Approve?"
+- header: "Instructions"
+- multiSelect: true (each proposed file is an option)
+- options: one per proposed AGENTS.md with the path as label and purpose as description
 
 ---
 
-## Step 5 — Interactive component selection
+## Step 6 — Interactive component selection
 
-Locate the plugin source directory. This is the directory where this command file lives — walk up from this file's location to find the plugin root. The template payload lives in the `template/` subdirectory (it contains `commands/`, `skills/`, `teams/` directories).
+Locate the plugin source directory — walk up from this command file to find the plugin root. Template payload is in the `template/` subdirectory.
 
-Use the `AskUserQuestion` tool for all selections below. This gives the user an interactive UI with arrow keys and space to toggle. Send **all three questions in a single `AskUserQuestion` call** so the user sees them together.
-
-Call `AskUserQuestion` with these three `multiSelect: true` questions:
+Use `AskUserQuestion` with **all three questions in a single call**:
 
 **Question 1 — Commands**
 - question: "Which slash commands would you like to install?"
@@ -123,47 +229,43 @@ Call `AskUserQuestion` with these three `multiSelect: true` questions:
 - header: "Skills"
 - multiSelect: true
 - options:
-  - label: "build", description: "Build knowledge, compiler flags, dependency order — with persistent memory"
-  - label: "test", description: "Test execution knowledge, flaky tests, coverage gaps — with persistent memory"
-  - label: "release", description: "Release process, CI/CD quirks, rollback notes — with persistent memory"
+  - label: "build", description: "Persistent memory for build issues, compiler flags, dependency order"
+  - label: "test", description: "Persistent memory for flaky tests, coverage gaps, test data"
+  - label: "release", description: "Persistent memory for CI/CD quirks, rollback notes, deploy issues"
 
 **Question 3 — Teams**
 - question: "Which team roles would you like to install?"
 - header: "Teams"
 - multiSelect: true
-- options (include base roles + detected project-specific roles from Step 2):
-  - label: "explorer", description: "Read-only research and code mapping (model: haiku)"
-  - label: "test-writer", description: "Test creation and coverage (model: haiku)"
-  - [add one option per project-specific role from Step 2 detection table, e.g.:]
-  - label: "backend", description: "[scope from detection] (model: sonnet)"
-  - label: "frontend", description: "[scope from detection] (model: sonnet)"
+- options (base roles + detected project-specific roles from Step 3):
+  - label: "explorer", description: "Read-only research and code mapping (haiku)"
+  - label: "test-writer", description: "Test creation and coverage (haiku)"
+  - [one option per project-specific role with scope from Step 3]
 
-Wait for all answers before proceeding. Items the user did **not** select are recorded as `declined`.
+Items **not** selected are recorded as `declined`.
 
 ---
 
-## Step 6 — Copy and customize selected components
+## Step 7 — Copy and customize
 
-For each selected item, copy from the plugin `template/` directory into the project root and customize:
+For each selected item, copy from plugin `template/` into the project root:
 
 ### Commands
-For each selected command, copy `template/commands/[name].command.md` to `commands/[name].command.md`. Customize:
-- `push.command.md` — replace working directory with real path
-- `test.command.md` — replace `[TODO]` with real test commands
-- `build.command.md` — replace `[TODO]` with real build commands
-- `team.command.md` — update team name prefix, integration check command
-- `bump.command.md` — use real version bump approach
-- `dev.command.md` — fill in dev commands, or skip if no dev server
-- `release.command.md` — use real CI/CD workflow
+Copy `template/commands/[name].command.md` → `commands/[name].command.md`. Customize each:
+- Replace `[TODO]` placeholders with real commands from Step 1
+- Replace `[PROJECT_ROOT]` with actual path
+- Replace `[PROJECT_NAME]` with actual name
+- If `dev.command.md` selected but no dev server exists, skip it and move to `declined`
 
-Also copy `template/commands/README.md` if any commands were selected.
+Copy `template/commands/README.md` if any commands were selected.
 
 ### Skills
-For each selected skill, copy the entire `template/skills/[name]/` directory to `skills/[name]/`.
-Also copy `template/skills/README.md` if any skills were selected.
+Copy `template/skills/[name]/` → `skills/[name]/` (entire directory with skill.md and memory.md).
+Copy `template/skills/README.md` if any skills were selected.
 
 ### Teams
-Copy selected role files from `template/teams/` to `teams/`. Update `test-writer.md` with the real test command. Create additional project-specific role files based on the detected project type (see Step 2). Each role file uses:
+Copy base role files from `template/teams/`. Customize `test-writer.md` with real test command.
+Generate project-specific roles based on Step 3 detection:
 
 ```markdown
 ---
@@ -197,25 +299,42 @@ Key paths:
 
 ---
 
-## Step 7 — Sync mirrors
+## Step 8 — Sync mirrors
 
-For any copied commands, generate `.claude/commands/` mirrors:
+Generate `.claude/commands/` mirrors for all installed commands:
 
 ```markdown
 <!-- Auto-generated from commands/[name].command.md — do not edit -->
 
-[Full content]
+[Full content of source file]
+```
+
+Delete any orphaned mirrors that no longer have a source file.
+
+---
+
+## Step 9 — Update CLAUDE.md linker block
+
+Regenerate the AGENTS.md location list at the bottom of `CLAUDE.md` with all current paths:
+
+```markdown
+All `AGENTS.md` locations:
+- @AGENTS.md
+- @src/api/AGENTS.md
+- @src/components/AGENTS.md
+[... every AGENTS.md in the project]
 ```
 
 ---
 
-## Step 8 — Save choices
+## Step 10 — Save choices
 
-Write `.claude-template.json` to the project root:
+Write `.claude-template.json`:
 
 ```json
 {
-  "version": "2.2.0",
+  "version": "2.4.0",
+  "projectType": "Fullstack Node",
   "commands": {
     "installed": ["build", "test", "push"],
     "declined": ["dev", "bump", "release", "team"]
@@ -232,133 +351,111 @@ Write `.claude-template.json` to the project root:
 }
 ```
 
-Track each item individually per category. Set `lastSync` to today's date.
-
 ---
 
-## Step 9 — Report
+## Step 11 — Report
 
 ```
-Initialized [project name]:
+Initialized [project name] ([type]):
 
-  CLAUDE.md            — filled with project info
-  AGENTS.md            — root rules created
-  [sub-dir]/AGENTS.md  — [list]
+Instructions:
+  CLAUDE.md                — filled with project info
+  AGENTS.md                — root rules + stack-specific rules
+  [path]/AGENTS.md         — [purpose]
+  ...
 
-Commands installed:
-  /build, /test, /push
+Commands:  /build, /test, /push
+Skills:    build, test
+Teams:     explorer, test-writer, backend
 
-Skills installed:
-  skills/build/, skills/test/
+Declined:  commands(dev, bump, release, team) skills(release)
 
-Teams installed:
-  teams/explorer.md, teams/test-writer.md, teams/backend.md
-
-Declined (won't be asked again):
-  commands: dev, bump, release, team
-  skills: release
-
-Saved choices to .claude-template.json
-Run /update again to check for updates.
+Config saved to .claude-template.json
+Run /claude-template:update again to refresh.
 ```
 
 ---
 
 # Update Mode
 
-## Step 1 — Read choices
+## Step 1 — Read config and scan
 
-Read `.claude-template.json` to determine:
-- Which individual items are **installed** (will be updated)
-- Which individual items were **declined** (will be skipped)
+Read `.claude-template.json` for:
+- Installed items (will check for updates)
+- Declined items (skip silently)
 - Last sync date
+- Template version at last sync
+
+Also re-scan the project (same as Init Step 1) to detect any changes to structure, tech stack, or commands.
 
 ---
 
-## Step 2 — Check upstream for template updates
+## Step 2 — Check for template updates
 
-Locate the plugin source directory (the `template/` subdirectory of the plugin root).
+Locate the plugin `template/` directory. Compare the plugin's current template version (from `.claude-plugin/plugin.json`) against the version stored in `.claude-template.json`.
 
-Check if `upstream` remote exists for `https://github.com/PsyChonek/ClaudeTemplate`:
+If versions differ, compare each installed component file against the plugin's template version:
 
-```bash
-git remote -v
-```
+### For each installed command/skill/team
+Read both the local file and the template source. If they differ:
+- Show a brief summary of what changed
+- Use `AskUserQuestion` per changed item:
+  - question: "[file] has upstream changes: [summary]. How to handle?"
+  - header: "Update"
+  - options:
+    - label: "Accept", description: "Replace local with upstream version (re-customizes placeholders)"
+    - label: "Skip", description: "Keep local version as-is"
 
-If not configured, add it:
-```bash
-git remote add upstream https://github.com/PsyChonek/ClaudeTemplate.git
-```
-
-Fetch and compare:
-```bash
-git fetch upstream master
-git log HEAD..upstream/master --oneline --no-merges
-```
-
-If there are upstream changes, show a summary:
-```
-Upstream has [N] new commits since last sync ([lastSync date]):
-
-  abc1234  feat: add new command
-  def5678  fix: improve build skill
-
-Files changed:
-  New:      [list]
-  Modified: [list]
-```
-
-### For installed items
-Show changes per item and ask:
-- **Accept** — take upstream version
-- **Merge** — keep local, add upstream additions
-- **Skip** — keep local as-is
+### For new items in template (not in installed or declined)
+Use `AskUserQuestion` with `multiSelect: true` to let the user pick new items. Group by category. Unselected items go to `declined`.
 
 ### For declined items
-Skip silently — do not ask again.
-
-### For new items (not in installed or declined)
-If upstream added new commands, skills, or team roles, use `AskUserQuestion` with `multiSelect: true` to let the user pick which new items to install. Group by category. Items not selected are recorded as `declined`.
-
-Update `.claude-template.json` with the user's choices.
+Skip silently — never re-ask.
 
 ---
 
 ## Step 3 — Refresh instructions
 
-Re-scan the project and update:
-1. `CLAUDE.md` — check for new directories, updated tech stack, etc.
-2. Root `AGENTS.md` — refresh if project structure changed
-3. Per-directory `AGENTS.md` files — create new ones for new directories, update stale ones, delete unnecessary ones
+Re-scan and compare:
 
-Present all proposed changes before writing:
-```
-Instruction updates:
+### CLAUDE.md
+- Check for new directories, changed tech stack, new dependencies
+- Update only the sections that are stale; preserve user customizations
+- Regenerate the AGENTS.md linker block with current paths
 
-  Keep:    src/api/AGENTS.md (still accurate)
-  Update:  src/components/AGENTS.md (new files detected)
-  Create:  src/services/AGENTS.md (new module)
-  Delete:  src/old-module/AGENTS.md (directory removed)
+### Root AGENTS.md
+- Compare current project state with what's in AGENTS.md
+- Update stale sections (e.g., new setup steps, changed commands)
+- Refresh stack-specific rules if framework version changed
 
-Proceed? [yes / review individually]
-```
+### Per-directory AGENTS.md
+Evaluate every existing AGENTS.md and every directory:
+- **Accurate** → keep
+- **Stale** (references removed files/patterns) → propose rewrite
+- **Missing** (new directory meets creation criteria) → propose creation
+- **Unnecessary** (directory removed or now covered by parent) → propose deletion
+
+Present proposals using `AskUserQuestion` with `multiSelect: true`:
+- question: "Select which instruction updates to apply"
+- header: "Instructions"
+- Each proposed change as an option (label: path, description: action + reason)
 
 ---
 
 ## Step 4 — Sync mirrors
 
-Regenerate `.claude/commands/` mirrors for all installed commands.
-
-Remove orphaned mirrors (source file was deleted).
+Regenerate `.claude/commands/` for all installed commands.
+Remove orphaned mirrors.
 
 ---
 
-## Step 5 — Update config
+## Step 5 — Save config
 
 Update `.claude-template.json`:
-- Update `lastSync` to today's date
-- Add any new item choices (installed or declined)
-- Update `version` if upstream template version changed
+- `lastSync` → today
+- `version` → current plugin version
+- Add any new installed/declined items
+- Update `projectType` if detection changed
 
 ---
 
@@ -367,24 +464,24 @@ Update `.claude-template.json`:
 ```
 Updated [project name]:
 
-Upstream changes:
-  Applied [N] updates from PsyChonek/ClaudeTemplate
+Template: [old version] → [new version]
 
-Instructions:
-  Updated:  src/components/AGENTS.md
-  Created:  src/services/AGENTS.md
-  Removed:  src/old-module/AGENTS.md
+Instructions refreshed:
+  Updated:  AGENTS.md (new setup step)
+  Updated:  src/api/AGENTS.md (new endpoint conventions)
+  Created:  src/services/AGENTS.md (new module)
+  Removed:  src/old/AGENTS.md (directory removed)
+  Kept:     src/components/AGENTS.md (still accurate)
 
 Components updated:
-  commands/build.command.md — accepted upstream changes
-  skills/test/skill.md — merged
+  commands/build.command.md — accepted upstream
+  skills/test/skill.md — accepted upstream
 
 New components:
-  commands/deploy.command.md — installed
-  skills/monitoring/ — declined
+  /deploy — installed
+  /monitor — declined
 
-Mirrors synced:
-  .claude/commands/[name].md
+Mirrors synced: .claude/commands/
 
-Config: .claude-template.json updated (lastSync: [date])
+Config: .claude-template.json updated
 ```
