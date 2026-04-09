@@ -3,6 +3,8 @@
 You initialize or update the Claude Code project template. You detect the current state and act accordingly — first run sets everything up, subsequent runs refresh and sync.
 
 > **IMPORTANT — Interactive UI rule:** Every time this prompt says to ask the user a question or present choices, you **MUST** invoke the `AskUserQuestion` tool. Never print a text-based menu, numbered list, or ask the user to type a selection. The tool gives the user a proper interactive UI with arrow keys and space bar to select. This applies to ALL user-facing questions throughout this entire flow.
+>
+> **AskUserQuestion limits:** Max **4 questions** per call, max **4 options** per question. If you need more options, split into multiple `AskUserQuestion` calls. If a dynamic step (e.g., AGENTS.md proposals, instruction updates) produces more than 4 options, batch them into groups of 4 across sequential calls.
 
 ---
 
@@ -237,25 +239,43 @@ Locate the plugin source directory — walk up from this command file to find th
 
 **CRITICAL: You MUST use the `AskUserQuestion` tool for this step.** Do NOT print a text menu. Do NOT ask the user to type numbers. You must invoke the tool so the user gets an interactive checkbox UI with arrow keys and space bar.
 
-Invoke `AskUserQuestion` with exactly this structure (adjust teams options based on Step 3 detection):
+This requires **two** `AskUserQuestion` calls due to tool limits (max 4 questions, max 4 options each).
+
+**Call 1 — Commands** (adjust options based on detected stack; omit commands that don't apply):
 
 ```json
 {
   "questions": [
     {
-      "question": "Which slash commands would you like to install?",
-      "header": "Commands",
+      "question": "Which dev commands would you like to install?",
+      "header": "Dev",
       "multiSelect": true,
       "options": [
         {"label": "/build", "description": "Build the project (debug or release)"},
         {"label": "/test", "description": "Run the test suite"},
-        {"label": "/dev", "description": "Start hot-reload dev environment"},
+        {"label": "/dev", "description": "Start hot-reload dev environment"}
+      ]
+    },
+    {
+      "question": "Which workflow commands would you like to install?",
+      "header": "Workflow",
+      "multiSelect": true,
+      "options": [
         {"label": "/push", "description": "Stage, commit, and push changes"},
         {"label": "/bump", "description": "Bump version across all files"},
         {"label": "/release", "description": "Cut a release (bump, tag, CI/CD, deploy)"},
         {"label": "/team", "description": "Spawn a parallel agent team"}
       ]
-    },
+    }
+  ]
+}
+```
+
+**Call 2 — Skills & Teams** (adjust teams options based on Step 3 detection):
+
+```json
+{
+  "questions": [
     {
       "question": "Which skill packages would you like to install?",
       "header": "Skills",
@@ -279,7 +299,7 @@ Invoke `AskUserQuestion` with exactly this structure (adjust teams options based
 }
 ```
 
-For the Teams question, **append** project-specific roles from Step 3 to the options array. For example, for a Fullstack Node project add `{"label": "backend", "description": "Backend API and routes (sonnet)"}` and `{"label": "frontend", "description": "Frontend components and state (sonnet)"}`.
+For the Teams question, **append** project-specific roles from Step 3 to the options array (max 4 total). For example, for a Fullstack Node project add `{"label": "backend", "description": "Backend API and routes (sonnet)"}` and `{"label": "frontend", "description": "Frontend components and state (sonnet)"}`. If you have more than 4 team roles, split into a separate `AskUserQuestion` call.
 
 Items the user does **not** select are recorded as `declined`.
 
