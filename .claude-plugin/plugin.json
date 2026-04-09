@@ -1,7 +1,7 @@
 {
   "name": "claude-template",
-  "description": "Project template with /init skill — generates instructions, optionally copies commands, agents, teams, and skills",
-  "version": "2.1.0",
+  "description": "Project template — /update generates instructions and optionally copies commands, agents, teams, and skills",
+  "version": "2.2.0",
   "author": {
     "name": "PsyChonek",
     "url": "https://github.com/PsyChonek"

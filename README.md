@@ -43,7 +43,7 @@ Structured AI-assisted development for any project — instructions, agents, sla
 ## Repository structure
 
 ```
-.claude/commands/update.md    ← the only exposed skill (/update)
+commands/update.md            ← the only exposed skill (/update)
 template/                   ← payload copied into target projects
   agents/                   ← agent definitions
   commands/                 ← slash commands

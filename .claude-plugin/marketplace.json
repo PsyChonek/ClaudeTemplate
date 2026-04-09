@@ -9,8 +9,8 @@
     {
       "name": "claude-template",
       "source": "./",
-      "description": "Structured AI-assisted development — agents, slash commands, skills, and per-directory coding rules",
-      "version": "2.1.0"
+      "description": "Project template — /update generates instructions and optionally copies commands, agents, teams, and skills",
+      "version": "2.2.0"
     }
   ]
 }
