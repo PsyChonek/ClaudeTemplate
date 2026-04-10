@@ -104,35 +104,27 @@ When working in a git repository and making any code changes (edits, new files, 
 
 1. **Create worktree first**: Before making any code changes, create an isolated worktree:
    - Derive a short kebab-case slug from the task (e.g., `fix-login-bug`, `add-auth`)
-   - Run: `git worktree add .claude/worktrees/<slug> -b worktree-<slug> origin/HEAD`
+   - Run: `git worktree add .claude/worktrees/<slug> -b worktree-<slug>`
    - Use the worktree directory as working directory for ALL file changes
 
 2. **Do the work**: Complete the task fully in the worktree — write code, run tests, verify
 
 3. **Commit**: Stage and commit all changes with a descriptive message
 
-4. **Merge back**: From the original repo root:
-   - `git checkout main` (or whatever the default branch is)
-   - `git merge --no-ff worktree-<slug>`
-   - If merge conflicts occur: STOP, report the conflict, keep the branch for manual resolution, do NOT force-resolve
+4. **Apply to active branch**: From the original repo root:
+   - `git merge --ff-only worktree-<slug>` (fast-forward the active branch)
+   - If fast-forward fails: STOP, report the issue, keep the branch for manual resolution
 
 5. **Cleanup on success**:
    - `git worktree remove .claude/worktrees/<slug>`
    - `git branch -d worktree-<slug>`
 
-6. **Report**: Summarize what changed and confirm merge + cleanup
+6. **Report**: Summarize what changed and confirm cleanup
 
 **Exceptions — do NOT use worktree for:**
 - Read-only tasks (exploring code, answering questions, reviewing)
 - Non-git directories
 - Tasks that only modify config/docs outside the repo
-
-**Why this approach:**
-- Global CLAUDE.md applies to all projects on the machine
-- No dependencies, no scripts, no hooks — pure behavioral instructions
-- Cross-platform: Claude handles OS differences in git commands
-- Always-on: no prefix needed, Claude uses worktree by default for code changes
-- Safe: conflicts are never force-resolved
 
 **Verification:**
 1. Open Claude Code in any git repo

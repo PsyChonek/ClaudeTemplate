@@ -144,7 +144,9 @@ If `CLAUDE.md` already has project-specific content (not just placeholders):
 
 If `CLAUDE.md` is template-only or doesn't exist:
 - Generate from scratch with all sections filled in
-- Keep "Worktree Workflow", "Debugging & Anti-Looping", and "Git Workflow" sections unchanged — they are universal
+- Keep "Debugging & Anti-Looping" and "Git Workflow" sections unchanged — they are universal
+- **If `gitWorkflow` is `"worktree"`**: include the "Worktree Workflow" section
+- **If `gitWorkflow` is `"current-branch"`**: omit the "Worktree Workflow" section entirely
 
 Always include the AGENTS.md linker block at the bottom:
 ```markdown
@@ -239,7 +241,7 @@ Locate the plugin source directory — walk up from this command file to find th
 
 **CRITICAL: You MUST use the `AskUserQuestion` tool for this step.** Do NOT print a text menu. Do NOT ask the user to type numbers. You must invoke the tool so the user gets an interactive checkbox UI with arrow keys and space bar.
 
-This requires **two** `AskUserQuestion` calls due to tool limits (max 4 questions, max 4 options each).
+This requires **three** `AskUserQuestion` calls due to tool limits (max 4 questions, max 4 options each).
 
 **Call 1 — Commands** (adjust options based on detected stack; omit commands that don't apply):
 
@@ -302,6 +304,26 @@ This requires **two** `AskUserQuestion` calls due to tool limits (max 4 question
 For the Teams question, **append** project-specific roles from Step 3 to the options array (max 4 total). For example, for a Fullstack Node project add `{"label": "backend", "description": "Backend API and routes (sonnet)"}` and `{"label": "frontend", "description": "Frontend components and state (sonnet)"}`. If you have more than 4 team roles, split into a separate `AskUserQuestion` call.
 
 Items the user does **not** select are recorded as `declined`.
+
+**Call 3 — Git workflow**:
+
+```json
+{
+  "questions": [
+    {
+      "question": "How should Claude handle code changes?",
+      "header": "Git Workflow",
+      "multiSelect": false,
+      "options": [
+        {"label": "Worktree", "description": "Create isolated worktree per task, commit there, then merge back to active branch"},
+        {"label": "Current branch", "description": "Make changes and commit directly on the current branch"}
+      ]
+    }
+  ]
+}
+```
+
+Save the choice as `gitWorkflow` — either `"worktree"` or `"current-branch"`.
 
 ---
 
@@ -434,6 +456,7 @@ Write `.claude-template.json` (include the pointer files in the config):
 {
   "version": "2.4.0",
   "projectType": "Fullstack Node",
+  "gitWorkflow": "worktree",
   "commands": {
     "installed": ["build", "test", "push"],
     "declined": ["dev", "bump", "release", "team"]
@@ -467,6 +490,8 @@ Pointer files:
   .cursorrules                      — redirects Cursor to AGENTS.md
   .github/copilot-instructions.md   — redirects Copilot to AGENTS.md
   .junie/guidelines.md              — redirects Junie to AGENTS.md
+
+Git workflow: [worktree / current-branch]
 
 Commands:  /build, /test, /push
 Skills:    build, test
