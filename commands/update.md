@@ -386,9 +386,49 @@ All `AGENTS.md` locations:
 
 ---
 
-## Step 10 — Save choices
+## Step 10 — Create AI tool pointer files
 
-Write `.claude-template.json`:
+Create pointer files that redirect other AI coding tools to `AGENTS.md`. These ensure consistent instructions across all AI assistants.
+
+Create the following files (overwrite if they already exist as pointer files; if they contain real project-specific content, preserve them and skip):
+
+### `.cursorrules`
+
+```
+# This project uses AGENTS.md for AI instructions.
+# See AGENTS.md in the project root and subdirectories for all conventions, rules, and setup.
+# Do not add rules here — edit AGENTS.md instead.
+```
+
+### `.github/copilot-instructions.md`
+
+Create the `.github/` directory if it doesn't exist.
+
+```markdown
+# Copilot Instructions
+
+This project uses `AGENTS.md` for AI instructions. See `AGENTS.md` in the project root and subdirectories for all conventions, rules, and setup.
+
+Do not add rules here — edit `AGENTS.md` instead.
+```
+
+### `.junie/guidelines.md`
+
+Create the `.junie/` directory if it doesn't exist.
+
+```markdown
+# Junie Guidelines
+
+This project uses `AGENTS.md` for AI instructions. See `AGENTS.md` in the project root and subdirectories for all conventions, rules, and setup.
+
+Do not add rules here — edit `AGENTS.md` instead.
+```
+
+---
+
+## Step 11 — Save choices
+
+Write `.claude-template.json` (include the pointer files in the config):
 
 ```json
 {
@@ -412,7 +452,7 @@ Write `.claude-template.json`:
 
 ---
 
-## Step 11 — Report
+## Step 12 — Report
 
 ```
 Initialized [project name] ([type]):
@@ -422,6 +462,11 @@ Instructions:
   AGENTS.md                — root rules + stack-specific rules
   [path]/AGENTS.md         — [purpose]
   ...
+
+Pointer files:
+  .cursorrules                      — redirects Cursor to AGENTS.md
+  .github/copilot-instructions.md   — redirects Copilot to AGENTS.md
+  .junie/guidelines.md              — redirects Junie to AGENTS.md
 
 Commands:  /build, /test, /push
 Skills:    build, test
@@ -550,7 +595,13 @@ Remove orphaned mirrors.
 
 ---
 
-## Step 5 — Save config
+## Step 5 — Refresh pointer files
+
+Re-create the AI tool pointer files (`.cursorrules`, `.github/copilot-instructions.md`, `.junie/guidelines.md`) using the same logic as Init Step 10. If a file has been replaced with real project-specific content (not just the pointer text), skip it.
+
+---
+
+## Step 6 — Save config
 
 Update `.claude-template.json`:
 - `lastSync` → today
@@ -560,7 +611,7 @@ Update `.claude-template.json`:
 
 ---
 
-## Step 6 — Report
+## Step 7 — Report
 
 ```
 Updated [project name]:
@@ -582,6 +633,7 @@ New components:
   /deploy — installed
   /monitor — declined
 
+Pointer files: refreshed
 Mirrors synced: .claude/commands/
 
 Config: .claude-template.json updated
