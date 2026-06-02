@@ -87,6 +87,38 @@ When a fix attempt fails, **do not retry the same approach**. Follow this escala
 - Search for the exact error message in docs, issues, or forums
 - Consider if the problem is environmental (wrong version, missing config, stale cache)
 
+## Issues Log
+
+When a fix fails, persist the debugging context as a **`project`-type memory** in the Claude Code memory system so it survives across sessions and surfaces automatically via `MEMORY.md`.
+
+**When to write**: After any failed fix attempt — create or update a memory entry for the bug.
+**When to read**: `MEMORY.md` is auto-loaded at session start; scan it for the error keyword before a second attempt.
+
+**Memory entry format**:
+
+```markdown
+---
+name: issue-<kebab-slug>
+description: [OPEN|RESOLVED] <short symptom> — <exact error string>
+metadata:
+  type: project
+---
+
+<one-line symptom>
+
+**Tried**: `<approach>` → <why it failed>; `<next approach>` → <why it failed>
+
+**Why:** <current root cause hypothesis>
+
+**How to apply:** Avoid <what failed>. Next candidate: <approach>. Resolved by: <fix>  ← fill when closed
+```
+
+**Rules**:
+- One memory file per distinct bug — update in place on each retry, never create duplicates.
+- Mark description `[RESOLVED]` and fill `Resolved by` when the fix lands.
+- Keep resolved entries — they prevent re-investigation in future sessions.
+- Link related issues with `[[issue-<slug>]]` in the body.
+
 ## Testing
 - Location: [alongside code / in `tests/` / in `__tests__/`]
 - Run: `[test command]`
